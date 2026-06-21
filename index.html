@@ -1,0 +1,1769 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web GIS Manaus — Localidades, Bairros e Zonas</title>
+    
+    <!-- CSS Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts (Plus Jakarta Sans) -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Importação das bases de dados reais em formato JS de escopo global -->
+    <script src="bairros_data.js"></script>
+    <script src="localidades_data.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        
+        /* Ocultar barra de rolagem */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* Personalização do Scrollbar elegante */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #090d16;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+
+        /* Estilização customizada dos Popups do Leaflet */
+        .leaflet-popup-content-wrapper {
+            background: #0f172a !important; /* bg-slate-900 */
+            color: #f1f5f9 !important; /* text-slate-100 */
+            border: 1px solid #1e293b !important; /* border-slate-800 */
+            border-radius: 12px !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5) !important;
+            padding: 0 !important;
+        }
+        .leaflet-popup-content {
+            margin: 0 !important;
+            padding: 14px 18px !important;
+            min-width: 270px !important;
+            max-width: 320px !important;
+            box-sizing: border-box !important;
+        }
+        .leaflet-popup-tip {
+            background: #0f172a !important;
+            border: 1px solid #1e293b !important;
+        }
+        .leaflet-popup-close-button {
+            color: #94a3b8 !important; /* text-slate-400 */
+            padding: 8px 12px 0 0 !important;
+        }
+        .leaflet-popup-close-button:hover {
+            color: #f87171 !important; /* text-red-400 */
+        }
+        
+        /* Ajuste de controles flutuantes no mapa */
+        .leaflet-bar {
+            border: none !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3) !important;
+        }
+        .leaflet-bar a {
+            background-color: #0f172a !important;
+            color: #94a3b8 !important;
+            border-bottom: 1px solid #1e293b !important;
+            transition: all 0.2s;
+        }
+        .leaflet-bar a:hover {
+            background-color: #1e293b !important;
+            color: #f1f5f9 !important;
+        }
+        .leaflet-bar a:first-child {
+            border-top-left-radius: 8px !important;
+            border-top-right-radius: 8px !important;
+        }
+        .leaflet-bar a:last-child {
+            border-bottom-left-radius: 8px !important;
+            border-bottom-right-radius: 8px !important;
+            border-bottom: none !important;
+        }
+
+        /* ESTILOS DO MODAL E DO PREVIEW DE RELATÓRIO */
+        #report-paper {
+            background: #ffffff !important;
+            color: #1e293b !important;
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm;
+            margin: 20px auto;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border-radius: 4px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            position: relative;
+        }
+
+        /* ESTILOS DE IMPRESSÃO */
+        @media print {
+            body, html {
+                background: #ffffff !important;
+                color: #000000 !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+            /* Ocultar toda a interface do GIS principal e controles do relatório */
+            main, .fixed, button, input, #btn-menu-layers, #panel-layers, .leaflet-control-zoom, .leaflet-control-scale, #report-controls {
+                display: none !important;
+            }
+            /* Forçar a exibição apenas do papel do relatório */
+            #report-modal {
+                position: absolute !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                background: transparent !important;
+                backdrop-filter: none !important;
+                display: block !important;
+                padding: 0 !important;
+                overflow: visible !important;
+                z-index: 99999 !important;
+            }
+            #report-paper {
+                width: 100% !important;
+                min-height: 0 !important;
+                height: auto !important;
+                margin: 0 !important;
+                padding: 10mm !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                page-break-inside: avoid !important;
+            }
+        }
+
+        /* Personalização dos Tooltips Customizados do Hover */
+        .leaflet-tooltip-custom {
+            background-color: rgba(9, 13, 22, 0.95) !important; /* bg-slate-950/95 */
+            backdrop-filter: blur(4px);
+            color: #f1f5f9 !important; /* text-slate-100 */
+            border: 1px solid rgba(30, 41, 59, 0.8) !important; /* border-slate-800/80 */
+            border-radius: 8px !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
+            padding: 6px 10px !important;
+        }
+        .leaflet-tooltip-custom:before {
+            display: none !important;
+        }
+
+        /* Rótulos Permanentes dos Bairros com Halo Cartográfico */
+        .leaflet-tooltip-permanent-bairro {
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            color: #ffffff !important;
+            font-size: 10px !important;
+            font-weight: 800 !important;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-shadow: 
+                -1.5px -1.5px 0 #000,  
+                 1.5px -1.5px 0 #000,
+                -1.5px  1.5px 0 #000,
+                 1.5px  1.5px 0 #000,
+                 0px    0px  5px rgba(0,0,0,0.8) !important;
+            pointer-events: none !important;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans h-screen w-screen overflow-hidden select-none">
+
+    <!-- MAPA LEAFLET EM TELA CHEIA -->
+    <main class="w-full h-full relative z-10">
+        <div id="map" class="w-full h-full"></div>
+        
+        <!-- BARRA DE BUSCA FLUTUANTE SUPERIOR -->
+        <div class="fixed top-4 left-1/2 -translate-x-1/2 z-[1000] w-[90%] max-w-[520px] flex flex-col gap-2">
+            <div class="relative w-full bg-slate-950/90 backdrop-blur-md border border-slate-800/80 rounded-2xl shadow-2xl p-1.5 flex items-center">
+                <div class="bg-emerald-500/10 text-emerald-400 p-2.5 rounded-xl border border-emerald-500/20 mr-2 flex items-center justify-center">
+                    <i data-lucide="search" class="w-4 h-4"></i>
+                </div>
+                <input type="text" id="search-input" placeholder="Buscar bairro, condomínio, conjunto..." class="flex-1 bg-transparent text-slate-200 pl-1 pr-8 py-2 text-sm focus:outline-none placeholder-slate-500" />
+                <button id="clear-search-btn" class="hidden absolute right-4 text-slate-400 hover:text-slate-200">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <!-- Resultados da busca autocompletar -->
+            <div id="search-results" class="hidden w-full bg-slate-950/95 backdrop-blur-md border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-64 overflow-y-auto custom-scrollbar">
+                <!-- Gerado dinamicamente -->
+            </div>
+        </div>
+           <!-- PAINEL CARTOGRÁFICO DE CAMADAS E LEGENDA (Canto Superior Direito) -->
+        <div class="fixed top-4 right-4 z-[1000] flex flex-col items-end gap-2">
+            <!-- Botão Camadas & Legenda -->
+            <button id="btn-menu-layers" class="bg-slate-950 border border-slate-800 text-slate-200 px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 hover:bg-slate-900 active:scale-95 transition-all text-xs font-semibold">
+                <i data-lucide="layers" class="w-4 h-4 text-emerald-400"></i>
+                <span>Camadas & Legenda</span>
+            </button>
+            
+            <!-- Painel Retrátil -->
+            <div id="panel-layers" class="hidden bg-slate-950/95 backdrop-blur-md border border-slate-800 w-80 p-5 rounded-2xl shadow-2xl flex flex-col gap-4 z-[999]">
+                <div class="flex justify-between items-center border-b border-slate-900 pb-2">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <i data-lucide="settings" class="w-4 h-4 text-emerald-400"></i> Painel Cartográfico
+                    </span>
+                    <button id="btn-close-panel" class="text-slate-400 hover:text-slate-200">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <!-- Seleção de basemaps -->
+                <div class="flex flex-col gap-2">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Mapa Base</span>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="setBaseLayer('osm')" id="btn-base-osm" class="px-2 py-1.5 rounded-lg text-[10px] bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700 transition-all font-semibold uppercase tracking-wider text-center">Vetor</button>
+                        <button onclick="setBaseLayer('sat')" id="btn-base-sat" class="px-2 py-1.5 rounded-lg text-[10px] bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800 transition-all font-semibold uppercase tracking-wider text-center">Satélite</button>
+                        <button onclick="setBaseLayer('hybrid')" id="btn-base-hybrid" class="px-2 py-1.5 rounded-lg text-[10px] bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800 transition-all font-semibold uppercase tracking-wider text-center">Híbrido</button>
+                        <button onclick="setBaseLayer('dark')" id="btn-base-dark" class="px-2 py-1.5 rounded-lg text-[10px] bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800 transition-all font-semibold uppercase tracking-wider text-center">Escuro</button>
+                    </div>
+                </div>
+
+                <!-- Camadas temáticas -->
+                <div class="flex flex-col gap-2.5 pt-2 border-t border-slate-900">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Camadas Vetoriais</span>
+                    
+                    <!-- Bairros -->
+                    <button id="btn-toggle-bairros" class="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-emerald-500/30 hover:border-emerald-500/50 transition-all text-left">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-2.5 h-2.5 rounded bg-blue-500 border border-blue-400/40"></span>
+                            <div class="flex flex-col">
+                                <span class="text-xs font-semibold text-slate-200">Bairros de Manaus</span>
+                                <span class="text-[9px] text-slate-500" id="count-bairros">0 cadastrados</span>
+                            </div>
+                        </div>
+                        <span id="badge-bairros" class="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">ATIVO</span>
+                    </button>
+
+                    <!-- Localidades -->
+                    <button id="btn-toggle-localidades" class="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-emerald-500/30 hover:border-emerald-500/50 transition-all text-left">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-orange-500 border border-orange-400/40"></span>
+                            <div class="flex flex-col">
+                                <span class="text-xs font-semibold text-slate-200">Localidades (Subdivisões)</span>
+                                <span class="text-[9px] text-slate-500" id="count-localidades">0 cadastradas</span>
+                            </div>
+                        </div>
+                        <span id="badge-localidades" class="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">ATIVO</span>
+                    </button>
+
+                    <!-- Zonas -->
+                    <button id="btn-toggle-zonas" class="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 transition-all text-left">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-2.5 h-2.5 rounded bg-amber-500 border border-amber-400/40"></span>
+                            <div class="flex flex-col">
+                                <span class="text-xs font-semibold text-slate-200">Zonas Administrativas</span>
+                                <span class="text-[9px] text-slate-500">Filtro temático colorido</span>
+                            </div>
+                        </div>
+                        <span id="badge-zonas" class="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">INATIVO</span>
+                    </button>
+
+                    <!-- Controle de Rótulos de Texto (Nomes de Bairros no Mapa) -->
+                    <div class="flex items-center justify-between pt-1 border-t border-slate-900/50 mt-1">
+                        <span class="text-xs text-slate-400 flex items-center gap-1.5"><i data-lucide="type" class="w-3.5 h-3.5 text-slate-500"></i> Exibir nomes dos bairros</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="layer-toggle-labels" class="sr-only peer">
+                            <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-300 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Legenda Dinâmica -->
+                <div class="flex flex-col gap-2 pt-2 border-t border-slate-900">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Legenda Cartográfica</span>
+                    <div id="legend-content" class="flex flex-col gap-2 text-xs">
+                        <!-- Gerado dinamicamente -->
+                    </div>
+                </div>
+
+                <!-- Botão de Impressão -->
+                <div class="pt-2 border-t border-slate-900 flex">
+                    <button onclick="openReportModal()" class="w-full py-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 font-bold text-xs tracking-wider flex items-center justify-center gap-1.5 shadow-lg transition-all active:scale-95">
+                        <i data-lucide="printer" class="w-4 h-4 text-emerald-400"></i> Imprimir / Gerar PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTROLES FLUTUANTES RÁPIDOS NO MAPA (Superior Esquerdo) -->
+        <div class="fixed top-4 left-4 z-[1000] flex gap-2">
+            <!-- Centralizar em Manaus -->
+            <button onclick="zoomToManaus()" class="bg-slate-950 border border-slate-800 hover:bg-slate-900 hover:border-slate-700 text-slate-300 px-3.5 py-2.5 rounded-xl text-xs font-semibold shadow-2xl flex items-center gap-1.5 transition-all active:scale-95">
+                <i data-lucide="navigation" class="w-4 h-4 text-emerald-400"></i> Centralizar
+            </button>
+            <!-- Limpar Seleção -->
+            <button onclick="clearSelection()" class="bg-slate-950 border border-slate-800 hover:bg-slate-900 hover:border-slate-700 text-slate-300 px-3.5 py-2.5 rounded-xl text-xs font-semibold shadow-2xl flex items-center gap-1.5 transition-all active:scale-95">
+                <i data-lucide="trash-2" class="w-4 h-4 text-red-400"></i> Limpar
+            </button>
+            
+            <!-- Régua de Medida -->
+            <button id="btn-measure" onclick="toggleMeasure()" class="bg-slate-950 border border-slate-800 text-slate-300 px-3.5 py-2.5 rounded-xl shadow-2xl flex items-center gap-1.5 hover:bg-slate-900 active:scale-95 transition-all text-xs font-semibold" title="Ferramenta de Medição (Clique duplo para finalizar)">
+                <i data-lucide="ruler" class="w-4 h-4 text-emerald-400"></i> Medir
+            </button>
+            
+            <!-- Geolocalização GPS -->
+            <button id="btn-locate" onclick="locateUser()" class="bg-slate-950 border border-slate-800 text-slate-300 px-3.5 py-2.5 rounded-xl shadow-2xl flex items-center gap-1.5 hover:bg-slate-900 active:scale-95 transition-all text-xs font-semibold" title="Minha Localização atual">
+                <i data-lucide="locate" class="w-4 h-4 text-emerald-400"></i> Onde Estou
+            </button>
+        </div>
+
+        <!-- PAINEL DE COORDENADAS DINÂMICAS DO CURSOR (Inferior Esquerdo) -->
+        <div class="absolute bottom-4 left-24 z-[998] bg-slate-950/90 backdrop-blur-md border border-slate-800/80 px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-4 text-xs font-mono text-slate-400">
+            <div class="flex items-center gap-1.5">
+                <span class="text-slate-500 font-sans">LAT:</span>
+                <span id="coord-lat" class="text-white">-3.11900</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+                <span class="text-slate-500 font-sans">LNG:</span>
+                <span id="coord-lng" class="text-white">-60.02170</span>
+            </div>
+            <button id="copy-quick-coords" title="Copiar Coordenadas" class="text-slate-400 hover:text-emerald-400 transition-colors">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            </button>
+        </div>
+    </main>
+
+    <!-- MODAL DE VISUALIZAÇÃO DO RELATÓRIO HTML -->
+    <div id="report-modal" class="hidden fixed inset-0 z-[9999] bg-slate-950/85 backdrop-blur-md flex-col items-center overflow-y-auto p-5">
+        <!-- Controles Superiores -->
+        <div id="report-controls" class="w-full max-w-[210mm] flex justify-between items-center bg-slate-950/90 border border-slate-800/80 px-6 py-3.5 rounded-2xl shadow-2xl mb-4 text-sm z-50">
+            <div class="flex items-center gap-2">
+                <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                <span class="font-bold text-slate-300">Visualização do Relatório</span>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="window.print()" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold flex items-center gap-1.5 transition-all active:scale-95">
+                    <i data-lucide="printer" class="w-4 h-4"></i> Imprimir / PDF
+                </button>
+                <button onclick="closeReportModal()" class="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 font-semibold flex items-center gap-1.5 transition-all active:scale-95">
+                    <i data-lucide="x" class="w-4 h-4"></i> Fechar
+                </button>
+            </div>
+        </div>
+
+        <!-- Papel A4 do Relatório -->
+        <div id="report-paper">
+            <!-- Cabeçalho do Relatório -->
+            <div class="flex justify-between items-start border-b border-slate-300 pb-3">
+                <div class="flex flex-col text-slate-900">
+                    <h1 class="text-xl font-bold uppercase tracking-wide">Web GIS Manaus</h1>
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Relatório Cartográfico Oficial</span>
+                </div>
+                <div class="flex flex-col items-end text-[10px] text-slate-500 font-semibold">
+                    <span>Emissão: <span id="report-date">--/--/----</span></span>
+                    <span>Sistema: Localidades, Bairros e Zonas</span>
+                </div>
+            </div>
+
+            <!-- Mapa do Relatório -->
+            <div class="flex flex-col gap-1">
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Área de Estudo (Recorte Cartográfico)</span>
+                <div id="report-map" class="w-full h-[380px] rounded-xl border border-slate-200 overflow-hidden relative shadow-sm"></div>
+            </div>
+
+            <!-- Seção de Informações Principais (Feição Selecionada) -->
+            <div class="flex flex-col gap-1.5 bg-slate-50 border border-slate-100 p-4 rounded-xl">
+                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-1 flex items-center gap-1">
+                    <i data-lucide="info" class="w-4 h-4 text-emerald-600"></i> Informações do Recorte Cartográfico
+                </h3>
+                <div id="report-info-content" class="grid grid-cols-2 gap-x-6 gap-y-2 text-xs text-slate-700">
+                    <!-- Gerado dinamicamente -->
+                </div>
+            </div>
+
+            <!-- Legenda Cartográfica -->
+            <div class="flex flex-col gap-1.5">
+                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-1 text-slate-900">
+                    Legenda Cartográfica do Recorte
+                </h3>
+                <div id="report-legend-items" class="flex flex-wrap gap-x-6 gap-y-2 text-[10px] text-slate-600 font-semibold uppercase">
+                    <!-- Gerado dinamicamente -->
+                </div>
+            </div>
+
+            <!-- Observações Editáveis (Para o Analista) -->
+            <div class="flex flex-col gap-1 mt-auto">
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Notas / Observações do Analista</span>
+                <textarea id="report-notes" placeholder="Clique aqui para digitar notas ou observações que serão incluídas neste relatório..." class="w-full min-h-[90px] border border-slate-200 hover:border-slate-300 focus:border-emerald-500 focus:outline-none rounded-xl p-3 text-xs text-slate-700 bg-slate-50/50 resize-none font-sans transition-colors"></textarea>
+            </div>
+
+            <!-- Rodapé do Relatório -->
+            <div class="border-t border-slate-200 pt-2.5 flex justify-between items-center text-[8px] text-slate-400 uppercase font-semibold">
+                <span>Gerado automaticamente via Web GIS Manaus</span>
+                <span>AM / Manaus — Brasil</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- LEGENDA EXCLUSIVA PARA IMPRESSÃO (Oculta na visualização web normal, constará apenas no PDF/Impressão) -->
+    <div id="print-legend" class="hidden flex-col gap-1.5 p-4 bg-white border border-slate-400 rounded-lg text-black text-xs font-sans fixed bottom-4 left-4 z-[9999] w-72">
+        <h4 class="font-bold border-b border-slate-300 pb-1 uppercase text-[9px] tracking-wide">Legenda Cartográfica</h4>
+        <div id="print-legend-items" class="flex flex-col gap-1.5">
+            <!-- Roteado dinamicamente via JS antes de imprimir -->
+        </div>
+    </div>
+
+    <!-- JS Leaflet -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- CONFIGURAÇÕES DO SCRIPT WEB GIS -->
+    <script>
+        // Inicialização de ícones Lucide
+        lucide.createIcons();
+
+        // 1. DADOS SIMULADOS DE FALLBACK (para fins de testes locais e robustez)
+        const bairrosSimulados = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "id": 1,
+                    "properties": { "fid": 1, "OBJECTID": 1, "NOME_BAIRR": "ADRIANÓPOLIS", "ZONAS": "ZONA CENTRO-SUL" },
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [[[-60.015, -3.115], [-60.005, -3.115], [-60.005, -3.125], [-60.015, -3.125], [-60.015, -3.115]]]
+                    }
+                },
+                {
+                    "type": "Feature",
+                    "id": 2,
+                    "properties": { "fid": 2, "OBJECTID": 2, "NOME_BAIRR": "COMPENSA", "ZONAS": "ZONA OESTE" },
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [[[-60.065, -3.110], [-60.045, -3.110], [-60.045, -3.130], [-60.065, -3.130], [-60.065, -3.110]]]
+                    }
+                },
+                {
+                    "type": "Feature",
+                    "id": 3,
+                    "properties": { "fid": 3, "OBJECTID": 3, "NOME_BAIRR": "CIDADE NOVA", "ZONAS": "ZONA NORTE" },
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [[[-60.000, -3.050], [-59.980, -3.050], [-59.980, -3.080], [-60.000, -3.080], [-60.000, -3.050]]]
+                    }
+                },
+                {
+                    "type": "Feature",
+                    "id": 4,
+                    "properties": { "fid": 4, "OBJECTID": 4, "NOME_BAIRR": "CENTRO", "ZONAS": "ZONA SUL" },
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [[[-60.035, -3.135], [-60.020, -3.135], [-60.020, -3.145], [-60.035, -3.145], [-60.035, -3.135]]]
+                    }
+                },
+                {
+                    "type": "Feature",
+                    "id": 5,
+                    "properties": { "fid": 5, "OBJECTID": 5, "NOME_BAIRR": "SÃO JOSÉ OPERÁRIO", "ZONAS": "ZONA LESTE" },
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [[[-59.970, -3.085], [-59.950, -3.085], [-59.950, -3.105], [-59.970, -3.105], [-59.970, -3.085]]]
+                    }
+                }
+            ]
+        };
+
+        const localidadesSimuladas = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "id": 1,
+                    "properties": { "fid": 1, "NOME_LOCAL": "COMUNIDADE SÃO JOÃO", "ESTADO": "AM", "MUNICIPI_1": "MANAUS", "TIPO_1": "COMUNIDADE", "NOME": "COMUNIDADE SÃO JOÃO", "BAIRRO_1": "LAGO AZUL", "ZONAS": "ZONA NORTE" },
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [[[-60.022, -3.020], [-60.018, -3.020], [-60.018, -3.025], [-60.022, -3.025], [-60.022, -3.020]]]
+                    }
+                },
+                {
+                    "type": "Feature",
+                    "id": 2,
+                    "properties": { "fid": 2, "NOME_LOCAL": "CONJUNTO VIVER MELHOR", "ESTADO": "AM", "MUNICIPI_1": "MANAUS", "TIPO_1": "CONJUNTO", "NOME": "CONJUNTO VIVER MELHOR", "BAIRRO_1": "LAGO AZUL", "ZONAS": "ZONA NORTE" },
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [[[-60.015, -3.030], [-60.010, -3.030], [-60.010, -3.035], [-60.015, -3.035], [-60.015, -3.030]]]
+                    }
+                },
+                {
+                    "type": "Feature",
+                    "id": 3,
+                    "properties": { "fid": 3, "NOME_LOCAL": "CONDOMÍNIO SHANGRI-LÁ", "ESTADO": "AM", "MUNICIPI_1": "MANAUS", "TIPO_1": "CONDOMÍNIO", "NOME": "CONDOMÍNIO SHANGRI-LÁ", "BAIRRO_1": "PARQUE DEZ", "ZONAS": "ZONA CENTRO-SUL" },
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [[[-60.008, -3.090], [-60.004, -3.090], [-60.004, -3.095], [-60.008, -3.095], [-60.008, -3.090]]]
+                    }
+                },
+                {
+                    "type": "Feature",
+                    "id": 4,
+                    "properties": { "fid": 4, "NOME_LOCAL": "LOTEAMENTO ÁGUAS CLARAS", "ESTADO": "AM", "MUNICIPI_1": "MANAUS", "TIPO_1": "LOTEAMENTO", "NOME": "LOTEAMENTO ÁGUAS CLARAS", "BAIRRO_1": "NOVO ALEIXO", "ZONAS": "ZONA NORTE" },
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [[[-59.970, -3.060], [-59.965, -3.060], [-59.965, -3.065], [-59.970, -3.065], [-59.970, -3.060]]]
+                    }
+                },
+                {
+                    "type": "Feature",
+                    "id": 5,
+                    "properties": { "fid": 5, "NOME_LOCAL": "RESIDENCIAL FLAMBOYANT", "ESTADO": "AM", "MUNICIPI_1": "MANAUS", "TIPO_1": "RESIDENCIAL", "NOME": "RESIDENCIAL FLAMBOYANT", "BAIRRO_1": "PLANALTO", "ZONAS": "ZONA OESTE" },
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [[[-60.048, -3.098], [-60.044, -3.098], [-60.044, -3.102], [-60.048, -3.102], [-60.048, -3.098]]]
+                    }
+                }
+            ]
+        };
+
+        // 2. CONTROLES DE ESCOPO GLOBAL DO MAPA
+        let bairrosLayer, localidadesLayer;
+        let searchDb = [];
+        let map;
+        let locateMarker = null, locateCircle = null;
+
+        // Dados globais resolvidos
+        let bairrosData = typeof bairrosGeoJSON !== 'undefined' ? bairrosGeoJSON : bairrosSimulados;
+        let localidadesData = typeof localidadesGeoJSON !== 'undefined' ? localidadesGeoJSON : localidadesSimuladas;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            // Exibe quantidade nos badges do painel
+            document.getElementById('count-bairros').innerText = `${bairrosData.features.length} bairros`;
+            document.getElementById('count-localidades').innerText = `${localidadesData.features.length} localidades`;
+
+            // INICIALIZAÇÃO DO MAPA LEAFLET
+            map = L.map('map', {
+                zoomControl: false
+            }).setView([-3.1190, -60.0217], 12);
+            
+            L.control.zoom({ position: 'bottomleft' }).addTo(map);
+            L.control.scale({ imperial: false, position: 'bottomleft' }).addTo(map);
+
+            // MAPAS BASE (BASEMAPS)
+            activeBaseLayer = createBaseLayer('osm');
+            activeBaseLayer.addTo(map);
+
+            // CARREGAMENTO DE CAMADAS GEOJSON (Sem Hover)
+            bairrosLayer = L.geoJSON(bairrosData, {
+                style: styleBairros,
+                onEachFeature: function(feature, layer) {
+                    onEachFeature(feature, layer, 'bairros');
+                }
+            }).addTo(map);
+
+            localidadesLayer = L.geoJSON(localidadesData, {
+                style: styleLocalidades,
+                onEachFeature: function(feature, layer) {
+                    onEachFeature(feature, layer, 'localidades');
+                }
+            }).addTo(map);
+
+            // Ajustar o Zoom aos limites dos bairros reais se carregados
+            if (typeof bairrosGeoJSON !== 'undefined') {
+                map.fitBounds(bairrosLayer.getBounds());
+            }
+
+            // Mapear o banco de busca
+            bairrosData.features.forEach((f, index) => {
+                searchDb.push({
+                    name: f.properties.NOME_BAIRR,
+                    type: 'bairros',
+                    typeName: 'Bairro',
+                    zone: f.properties.ZONAS,
+                    feature: f,
+                    layerId: f.id !== undefined ? f.id : (f.properties.fid || f.properties.OBJECTID || index)
+                });
+            });
+
+            localidadesData.features.forEach((f, index) => {
+                searchDb.push({
+                    name: f.properties.NOME_LOCAL || f.properties.NOME,
+                    type: 'localidades',
+                    typeName: f.properties.TIPO_1 || 'Localidade',
+                    zone: f.properties.ZONAS,
+                    feature: f,
+                    layerId: f.id !== undefined ? f.id : (f.properties.fid || index)
+                });
+            });
+
+            updateLegend();
+
+            // Listeners de coordenadas
+            map.on('mousemove', function(e) {
+                document.getElementById('coord-lat').innerText = e.latlng.lat.toFixed(5);
+                document.getElementById('coord-lng').innerText = e.latlng.lng.toFixed(5);
+            });
+
+            document.getElementById('copy-quick-coords').addEventListener('click', function() {
+                const lat = document.getElementById('coord-lat').innerText;
+                const lng = document.getElementById('coord-lng').innerText;
+                copyToClipboard(`${lat}, ${lng}`);
+            });
+
+            // Listener de geolocalização
+            map.on('locationfound', function(e) {
+                if (locateMarker) map.removeLayer(locateMarker);
+                if (locateCircle) map.removeLayer(locateCircle);
+                
+                locateCircle = L.circle(e.latlng, e.accuracy, {
+                    color: '#3b82f6',
+                    fillColor: '#3b82f6',
+                    fillOpacity: 0.15,
+                    weight: 1
+                }).addTo(map);
+                
+                locateMarker = L.circleMarker(e.latlng, {
+                    radius: 7,
+                    color: '#ffffff',
+                    fillColor: '#3b82f6',
+                    fillOpacity: 1,
+                    weight: 2
+                }).addTo(map).bindPopup("Você está aqui! (Precisão: " + Math.round(e.accuracy) + "m)").openPopup();
+            });
+
+            map.on('locationerror', function(e) {
+                alert("Não foi possível acessar a sua geolocalização. Verifique se o seu navegador possui permissão de acesso ao GPS.");
+            });
+
+            // Listener de clique livre no mapa
+            map.on('click', function(e) {
+                setTimeout(() => {
+                    if (map.popupOpen || isMeasuring) return; // Ignora se popup de feição aberto ou modo medição ativo
+                    
+                    const lat = e.latlng.lat;
+                    const lng = e.latlng.lng;
+                    
+                    // Lógica de Vizinhança (Haversine) - Achar as 3 mais próximas em até 1 km
+                    let nearby = [];
+                    localidadesData.features.forEach(f => {
+                        let coord;
+                        if (f.geometry.type === 'Polygon') {
+                            let sumLat = 0, sumLng = 0, count = 0;
+                            f.geometry.coordinates[0].forEach(pt => {
+                                sumLng += pt[0];
+                                sumLat += pt[1];
+                                count++;
+                            });
+                            coord = { lat: sumLat / count, lng: sumLng / count };
+                        } else {
+                            coord = { lat: f.geometry.coordinates[1], lng: f.geometry.coordinates[0] };
+                        }
+                        const dist = getDistance(lat, lng, coord.lat, coord.lng);
+                        if (dist <= 1000) {
+                            nearby.push({
+                                name: f.properties.NOME_LOCAL || f.properties.NOME,
+                                dist: dist,
+                                tipo: f.properties.TIPO_1 || 'Localidade'
+                            });
+                        }
+                    });
+                    
+                    nearby.sort((a, b) => a.dist - b.dist);
+                    const top3 = nearby.slice(0, 3);
+                    
+                    let nearbyHtml = '';
+                    if (top3.length > 0) {
+                        nearbyHtml = `
+                            <div class="flex flex-col gap-1 border-t border-slate-800 pt-2 mt-2">
+                                <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Próximo a:</span>
+                                <div class="flex flex-col gap-0.5 text-[10px] text-slate-300">
+                                    ${top3.map(item => `
+                                        <div class="flex justify-between gap-2">
+                                            <span class="truncate max-w-[130px] font-semibold">${item.name}</span>
+                                            <span class="text-emerald-400 font-semibold font-mono">${Math.round(item.dist)}m</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        nearbyHtml = `
+                            <div class="flex flex-col gap-1 border-t border-slate-800 pt-2 mt-2 text-[10px] text-slate-500">
+                                Nenhum ponto de referência num raio de 1km.
+                            </div>
+                        `;
+                    }
+                    
+                    const popupContent = `
+                        <div class="p-2.5 flex flex-col gap-2 min-w-[210px] text-slate-100 font-sans">
+                            <div class="flex flex-col gap-0.5 border-b border-slate-800 pb-1.5">
+                                <span class="text-[9px] font-bold text-sky-400 uppercase tracking-wide">Ponto Selecionado</span>
+                                <h4 class="text-xs font-bold text-white">Coordenadas Livres</h4>
+                            </div>
+                            <div class="flex flex-col gap-1 text-[11px] text-slate-300 font-mono">
+                                <div class="flex justify-between">
+                                    <span class="text-slate-500">Lat:</span>
+                                    <span>${lat.toFixed(6)}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-500">Lng:</span>
+                                    <span>${lng.toFixed(6)}</span>
+                                </div>
+                            </div>
+                            ${nearbyHtml}
+                            <div class="grid grid-cols-2 gap-2 mt-2">
+                                <button onclick="copyToClipboard('${lat.toFixed(6)}, ${lng.toFixed(6)}')" class="py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-bold rounded-lg border border-slate-700 flex items-center justify-center gap-1 transition-all active:scale-95">
+                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copiar
+                                </button>
+                                <a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" class="py-1.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-center font-bold text-[10px] rounded-lg flex items-center justify-center gap-1 transition-all">
+                                    <i data-lucide="map" class="w-3.5 h-3.5"></i> Maps
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    
+                    L.popup()
+                        .setLatLng(e.latlng)
+                        .setContent(popupContent)
+                        .openOn(map);
+                    
+                    setTimeout(() => {
+                        lucide.createIcons();
+                    }, 50);
+                }, 50);
+            });
+
+            // Escuta cliques adicionais para Medição
+            map.on('click', function(e) {
+                if (isMeasuring) {
+                    const latlng = e.latlng;
+                    measurePoints.push(latlng);
+                    
+                    // Adiciona marcador
+                    const marker = L.circleMarker(latlng, {
+                        radius: 5,
+                        color: '#f43f5e',
+                        fillColor: '#f43f5e',
+                        fillOpacity: 1
+                    }).addTo(map);
+                    measureMarkers.push(marker);
+
+                    if (measurePoints.length > 1) {
+                        if (measureLine) {
+                            measureLine.setLatLngs(measurePoints);
+                        } else {
+                            measureLine = L.polyline(measurePoints, {
+                                color: '#f43f5e',
+                                weight: 3,
+                                dashArray: '5, 5'
+                            }).addTo(map);
+                        }
+                        
+                        // Calcula distância total acumulada
+                        let totalDist = 0;
+                        for (let i = 1; i < measurePoints.length; i++) {
+                            totalDist += getDistance(measurePoints[i-1].lat, measurePoints[i-1].lng, measurePoints[i].lat, measurePoints[i].lng);
+                        }
+                        
+                        let distStr = totalDist < 1000 ? `${Math.round(totalDist)} m` : `${(totalDist/1000).toFixed(2)} km`;
+                        marker.bindTooltip(distStr, { permanent: true, direction: 'right', className: 'bg-slate-950 border border-slate-800 text-[9px] text-rose-400 font-bold p-1 rounded shadow select-none pointer-events-none' }).openTooltip();
+                    }
+                }
+            });
+
+            // Clique duplo finaliza medição
+            map.on('dblclick', function(e) {
+                if (isMeasuring && measurePoints.length > 2) {
+                    measurePolygon = L.polygon(measurePoints, {
+                        color: '#f43f5e',
+                        fillColor: '#f43f5e',
+                        fillOpacity: 0.15,
+                        weight: 2
+                    }).addTo(map);
+                    
+                    const center = measurePolygon.getBounds().getCenter();
+                    
+                    // Cálculo planar de área (Shoelace em metros adaptada ao centroide de Manaus)
+                    let area = 0;
+                    const len = measurePoints.length;
+                    for (let i = 0; i < len; i++) {
+                        const p1 = measurePoints[i];
+                        const p2 = measurePoints[(i + 1) % len];
+                        
+                        const rad = center.lat * Math.PI / 180;
+                        const x1 = (p1.lng - center.lng) * 111132 * Math.cos(rad);
+                        const y1 = (p1.lat - center.lat) * 111132;
+                        const x2 = (p2.lng - center.lng) * 111132 * Math.cos(rad);
+                        const y2 = (p2.lat - center.lat) * 111132;
+                        
+                        area += (x1 * y2) - (x2 * y1);
+                    }
+                    area = Math.abs(area / 2);
+                    let areaStr = area < 10000 ? `${Math.round(area)} m²` : `${(area/10000).toFixed(2)} ha`;
+                    
+                    let totalDist = 0;
+                    for (let i = 1; i < measurePoints.length; i++) {
+                        totalDist += getDistance(measurePoints[i-1].lat, measurePoints[i-1].lng, measurePoints[i].lat, measurePoints[i].lng);
+                    }
+                    let distStr = totalDist < 1000 ? `${Math.round(totalDist)} m` : `${(totalDist/1000).toFixed(2)} km`;
+                    
+                    measurePopup = L.popup()
+                        .setLatLng(center)
+                        .setContent(`
+                            <div class="p-2 text-slate-100 font-sans text-xs flex flex-col gap-1 min-w-[180px]">
+                                <span class="text-[9px] font-bold text-rose-400 uppercase tracking-wide flex items-center gap-1"><i data-lucide="ruler" class="w-3.5 h-3.5"></i> Resultado da Medição</span>
+                                <div class="flex justify-between border-t border-slate-800 pt-1.5 mt-1">
+                                    <span class="text-slate-500">Perímetro:</span>
+                                    <span class="font-semibold font-mono text-slate-200">${distStr}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-500">Área:</span>
+                                    <span class="font-semibold font-mono text-slate-200">${areaStr}</span>
+                                </div>
+                                <button onclick="resetMeasure()" class="mt-2.5 py-1 bg-rose-500 hover:bg-rose-600 text-slate-950 font-bold text-[10px] rounded-lg tracking-wide transition-all active:scale-95">Limpar</button>
+                            </div>
+                        `)
+                        .openOn(map);
+                    
+                    setTimeout(() => lucide.createIcons(), 50);
+                    
+                    // Desliga estado de medição
+                    measurePoints = [];
+                    map.getContainer().style.cursor = '';
+                    document.getElementById('btn-measure').classList.remove('border-rose-500', 'bg-rose-500/10');
+                    map.doubleClickZoom.enable();
+                    isMeasuring = false;
+                }
+            });
+        });
+
+        // 3. FÓRMULA DE DISTÂNCIA HAVERSINE (metros)
+        function getDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Raio da Terra em km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c * 1000;
+        }
+
+        // 4. CRIAÇÃO DE NOVAS INSTÂNCIAS DE MAPAS BASE (BASEMAPS)
+        // Evita colisão de instâncias compartilhadas entre o mapa principal e o do relatório
+        function createBaseLayer(layerName) {
+            if (layerName === 'osm') {
+                return L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap contributors'
+                });
+            } else if (layerName === 'sat') {
+                return L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: 'Tiles &copy; Source: Esri, USDA, USGS, and the GIS User Community'
+                });
+            } else if (layerName === 'hybrid') {
+                return L.layerGroup([
+                    L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+                        attribution: 'Map data &copy; Google'
+                    }),
+                    L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}', {
+                        attribution: 'Map data &copy; Google',
+                        pane: 'shadowPane'
+                    })
+                ]);
+            } else if (layerName === 'dark') {
+                return L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+                    subdomains: 'abcd',
+                    maxZoom: 20
+                });
+            }
+            return null;
+        }
+
+        let activeBaseLayer;
+        let currentBaseLayer = 'osm';
+
+        function setBaseLayer(layerName) {
+            if (!map) return;
+            if (activeBaseLayer) {
+                map.removeLayer(activeBaseLayer);
+            }
+            activeBaseLayer = createBaseLayer(layerName);
+            activeBaseLayer.addTo(map);
+            
+            ['osm', 'sat', 'hybrid', 'dark'].forEach(name => {
+                const btn = document.getElementById(`btn-base-${name}`);
+                if (!btn) return;
+                if (name === layerName) {
+                    btn.classList.replace('bg-slate-900', 'bg-slate-800');
+                    btn.classList.replace('text-slate-400', 'text-slate-200');
+                    btn.classList.add('border-slate-700');
+                } else {
+                    btn.classList.replace('bg-slate-800', 'bg-slate-900');
+                    btn.classList.replace('text-slate-200', 'text-slate-400');
+                    btn.classList.remove('border-slate-700');
+                }
+            });
+            currentBaseLayer = layerName;
+        }
+
+        // 5. CONTROLES DE CAMADAS E ESTILO CARTOGRÁFICO
+        let layersStatus = {
+            bairros: true,
+            localidades: true,
+            zonas: false
+        };
+
+        const zoneColors = {
+            "ZONA CENTRO-SUL": "#38bdf8", 
+            "ZONA NORTE": "#f87171",      
+            "ZONA OESTE": "#facc15",      
+            "ZONA LESTE": "#4ade80",      
+            "ZONA CENTRO-OESTE": "#c084fc", 
+            "ZONA SUL": "#f472b6",        
+            "ZONA RURAL": "#a7f3d0",      
+        };
+
+        function getZoneColor(zoneName) {
+            const z = String(zoneName).trim().toUpperCase();
+            return zoneColors[z] || "#94a3b8";
+        }
+
+        function styleBairros(feature) {
+            return {
+                fillColor: layersStatus.zonas ? getZoneColor(feature.properties.ZONAS) : "#3b82f6", 
+                weight: 1.5,
+                opacity: 0.8,
+                color: "#1e293b",
+                fillOpacity: layersStatus.zonas ? 0.35 : 0.2
+            };
+        }
+
+        function styleLocalidades(feature) {
+            return {
+                fillColor: "#f97316", // Laranja Coral
+                weight: 1,
+                opacity: 0.9,
+                color: "#431407", // Contorno marrom escuro
+                fillOpacity: 0.45
+            };
+        }
+
+        let selectedLayer = null;
+
+        // 6. EVENTOS DOS BOTÕES DE CAMADAS E LEGENDA CARTOGRÁFICA
+        
+        document.getElementById('btn-toggle-bairros').addEventListener('click', function() {
+            layersStatus.bairros = !layersStatus.bairros;
+            toggleButtonUI('bairros', bairrosLayer);
+            updateLegend();
+            toggleBairrosLabels(); // Garante consistencia de labels
+        });
+
+        document.getElementById('btn-toggle-localidades').addEventListener('click', function() {
+            layersStatus.localidades = !layersStatus.localidades;
+            toggleButtonUI('localidades', localidadesLayer);
+            updateLegend();
+        });
+
+        document.getElementById('btn-toggle-zonas').addEventListener('click', function() {
+            layersStatus.zonas = !layersStatus.zonas;
+            
+            const btn = document.getElementById('btn-toggle-zonas');
+            const badge = document.getElementById('badge-zonas');
+            
+            if (layersStatus.zonas) {
+                btn.classList.replace('border-slate-800', 'border-emerald-500/30');
+                btn.classList.add('hover:border-emerald-500/50');
+                badge.innerText = 'ATIVO';
+                badge.classList.replace('bg-slate-800', 'bg-emerald-500/10');
+                badge.classList.replace('text-slate-400', 'text-emerald-400');
+                badge.classList.replace('border-slate-700', 'border-emerald-500/20');
+            } else {
+                btn.classList.replace('border-emerald-500/30', 'border-slate-800');
+                btn.classList.remove('hover:border-emerald-500/50');
+                badge.innerText = 'INATIVO';
+                badge.classList.replace('bg-emerald-500/10', 'bg-slate-800');
+                badge.classList.replace('text-emerald-400', 'text-slate-400');
+                badge.classList.replace('border-emerald-500/20', 'border-slate-700');
+            }
+            
+            if (map && bairrosLayer) {
+                bairrosLayer.setStyle(styleBairros);
+            }
+            updateLegend();
+        });
+
+        function toggleButtonUI(type, layer) {
+            const btn = document.getElementById(`btn-toggle-${type}`);
+            const badge = document.getElementById(`badge-${type}`);
+            const isActive = layersStatus[type];
+
+            if (isActive) {
+                btn.classList.replace('border-slate-800', 'border-emerald-500/30');
+                btn.classList.add('hover:border-emerald-500/50');
+                badge.innerText = 'ATIVO';
+                badge.classList.replace('bg-slate-800', 'bg-emerald-500/10');
+                badge.classList.replace('text-slate-400', 'text-emerald-400');
+                badge.classList.replace('border-slate-700', 'border-emerald-500/20');
+                if (map) map.addLayer(layer);
+            } else {
+                btn.classList.replace('border-emerald-500/30', 'border-slate-800');
+                btn.classList.remove('hover:border-emerald-500/50');
+                badge.innerText = 'INATIVO';
+                badge.classList.replace('bg-emerald-500/10', 'bg-slate-800');
+                badge.classList.replace('text-emerald-400', 'text-slate-400');
+                badge.classList.replace('border-emerald-500/20', 'border-slate-700');
+                if (map) map.removeLayer(layer);
+            }
+        }
+
+        // Atualização da Legenda Dinâmica
+        function updateLegend() {
+            const legendContainer = document.getElementById('legend-content');
+            legendContainer.innerHTML = '';
+
+            let hasLegend = false;
+
+            if (layersStatus.bairros && !layersStatus.zonas) {
+                hasLegend = true;
+                legendContainer.innerHTML += `
+                    <div class="flex items-center gap-2">
+                        <span class="w-4 h-3 bg-blue-500/20 border border-blue-500 rounded"></span>
+                        <span class="text-slate-300">Bairros Oficiais (Polígono azul)</span>
+                    </div>
+                `;
+            }
+
+            if (layersStatus.zonas) {
+                hasLegend = true;
+                let zonesHtml = `
+                    <div class="flex flex-col gap-1 border-t border-slate-900 pt-2">
+                        <div class="grid grid-cols-2 gap-1.5">
+                `;
+                Object.keys(zoneColors).forEach(z => {
+                    zonesHtml += `
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-3 h-2.5 rounded" style="background-color: ${zoneColors[z]}40; border: 1px solid ${zoneColors[z]}"></span>
+                            <span class="text-[9px] text-slate-400 uppercase font-semibold truncate">${z.replace('ZONA ', '')}</span>
+                        </div>
+                    `;
+                });
+                zonesHtml += `</div></div>`;
+                legendContainer.innerHTML += zonesHtml;
+            }
+
+            if (layersStatus.localidades) {
+                hasLegend = true;
+                legendContainer.innerHTML += `
+                    <div class="flex items-center gap-2 ${layersStatus.zonas ? 'mt-2 border-t border-slate-900 pt-2' : ''}">
+                        <span class="w-3 h-3 rounded-full bg-orange-500/40 border border-orange-500"></span>
+                        <span class="text-slate-300">Localidades (Ponto laranja)</span>
+                    </div>
+                `;
+            }
+
+            if (!hasLegend) {
+                legendContainer.innerHTML = `<span class="text-slate-600 italic">Nenhuma camada ativa.</span>`;
+            }
+        }
+
+        // 7. RÓTULOS CARTOGRÁFICOS FLUTUANTES (LABELS)
+        let isLabelsActive = false;
+
+        document.getElementById('layer-toggle-labels').addEventListener('change', function(e) {
+            isLabelsActive = e.target.checked;
+            toggleBairrosLabels();
+        });
+
+        function toggleBairrosLabels() {
+            bairrosLayer.eachLayer(layer => {
+                if (isLabelsActive && layersStatus.bairros) {
+                    layer.bindTooltip(layer.feature.properties.NOME_BAIRR, {
+                        permanent: true,
+                        direction: 'center',
+                        className: 'leaflet-tooltip-permanent-bairro select-none pointer-events-none'
+                    }).openTooltip();
+                } else {
+                    layer.unbindTooltip();
+                }
+            });
+        }
+
+        // 8. POPUPS COM DADOS COMPLETOS E INTEGRAÇÃO DE CLIQUE
+        
+        function selectFeature(layer, props, type) {
+            if (selectedLayer && selectedLayer !== layer) {
+                if (selectedLayer.options.layerType === 'bairros') {
+                    bairrosLayer.resetStyle(selectedLayer);
+                } else if (selectedLayer.options.layerType === 'localidades') {
+                    localidadesLayer.resetStyle(selectedLayer);
+                }
+            }
+
+            selectedLayer = layer;
+            
+            layer.setStyle({
+                weight: 3.5,
+                color: "#10b981",
+                fillOpacity: 0.55
+            });
+        }
+
+        function makePopupContent(props, type, lat, lng) {
+            const name = props.NOME_LOCAL || props.NOME_BAIRR || props.NOME || "Sem Nome";
+            const zone = props.ZONAS || "Não Informada";
+            const tipo = props.TIPO_1 || (type === 'bairros' ? 'Bairro Oficial' : 'Localidade');
+            const bairroParent = props.BAIRRO_1 || "-";
+            
+            return `
+                <div class="flex flex-col gap-2.5 text-slate-100 font-sans">
+                    <div class="flex flex-col gap-0.5 border-b border-slate-800 pb-2">
+                        <span class="text-[9px] font-bold text-emerald-400 uppercase tracking-wider">${type === 'bairros' ? 'Bairro Oficial' : 'Localidade (' + tipo + ')'}</span>
+                        <h4 class="text-sm font-bold text-white leading-tight">${name}</h4>
+                    </div>
+                    <div class="flex flex-col gap-1.5 text-xs text-slate-300">
+                        <div class="flex justify-between gap-4">
+                            <span class="text-slate-500">Região (Zona):</span>
+                            <span class="font-semibold text-right">${zone}</span>
+                        </div>
+                        ${type !== 'bairros' ? `
+                        <div class="flex justify-between gap-4">
+                            <span class="text-slate-500">Bairro Pertencente:</span>
+                            <span class="font-semibold text-right">${bairroParent}</span>
+                        </div>` : ''}
+                        <div class="flex justify-between gap-4">
+                            <span class="text-slate-500">UF / Município:</span>
+                            <span class="font-semibold text-right">AM / Manaus</span>
+                        </div>
+                        <div class="flex justify-between gap-4">
+                            <span class="text-slate-500">Centroide:</span>
+                            <span class="font-semibold font-mono text-emerald-400 text-right">${lat.toFixed(5)}, ${lng.toFixed(5)}</span>
+                        </div>
+                    </div>
+                    <a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" class="mt-2.5 py-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-center font-bold text-xs rounded-xl tracking-wide flex items-center justify-center gap-1.5 transition-all shadow-lg active:scale-95">
+                        <i data-lucide="map" class="w-4 h-4"></i> Abrir no Google Maps
+                    </a>
+                </div>
+            `;
+        }
+
+        function onEachFeature(feature, layer, type) {
+            layer.options.layerType = type;
+            layer.on({
+                click: function (e) {
+                    const center = getCentroide(layer);
+                    const lat = center ? center.lat : e.latlng.lat;
+                    const lng = center ? center.lng : e.latlng.lng;
+                    selectFeature(layer, feature.properties, type);
+                    
+                    layer.bindPopup(makePopupContent(feature.properties, type, lat, lng)).openPopup(center || e.latlng);
+                    setTimeout(() => {
+                        lucide.createIcons();
+                    }, 50);
+                },
+                popupclose: function () {
+                    if (!isMeasuring && selectedLayer === layer) {
+                        clearSelection();
+                    }
+                },
+                mouseover: function (e) {
+                    if (isMeasuring) return;
+                    
+                    // Destaca a feição visualmente se não estiver selecionada
+                    if (layer !== selectedLayer) {
+                        layer.setStyle({
+                            weight: 2.5,
+                            color: type === 'bairros' ? '#38bdf8' : '#f97316',
+                            fillOpacity: type === 'bairros' ? 0.45 : 0.6
+                        });
+                    }
+
+                    // Exibe tooltip temporário que segue o cursor (se os rótulos fixos de bairros não estiverem ativos OU se for localidade)
+                    const isBairroLabelActive = (type === 'bairros' && isLabelsActive);
+                    if (!isBairroLabelActive) {
+                        const name = feature.properties.NOME_LOCAL || feature.properties.NOME_BAIRR || feature.properties.NOME || "Sem Nome";
+                        const labelType = type === 'bairros' ? 'Bairro' : (feature.properties.TIPO_1 || 'Localidade');
+                        layer.bindTooltip(`
+                            <div class="flex flex-col gap-0.5 select-none pointer-events-none">
+                                <span class="text-[8px] font-bold text-emerald-400 uppercase tracking-wide">${labelType}</span>
+                                <span class="text-xs font-bold text-slate-100">${name}</span>
+                            </div>
+                        `, {
+                            sticky: true,
+                            direction: 'auto',
+                            className: 'leaflet-tooltip-custom select-none pointer-events-none'
+                        }).openTooltip();
+                    }
+                },
+                mouseout: function (e) {
+                    if (isMeasuring) return;
+                    
+                    // Reseta o estilo para o padrão caso não seja a feição selecionada no momento
+                    if (layer !== selectedLayer) {
+                        if (type === 'bairros') {
+                            bairrosLayer.resetStyle(layer);
+                        } else if (type === 'localidades') {
+                            localidadesLayer.resetStyle(layer);
+                        }
+                    }
+
+                    // Remove o tooltip temporário
+                    const isBairroLabelActive = (type === 'bairros' && isLabelsActive);
+                    if (!isBairroLabelActive) {
+                        layer.unbindTooltip();
+                    }
+                }
+            });
+        }
+
+        // 9. FERRAMENTA DE MEDIÇÃO
+        let isMeasuring = false;
+        let measurePoints = [];
+        let measureLine = null;
+        let measurePolygon = null;
+        let measureMarkers = [];
+        let measurePopup = null;
+
+        function toggleMeasure() {
+            if (!map) return;
+            isMeasuring = !isMeasuring;
+            const btn = document.getElementById('btn-measure');
+            if (isMeasuring) {
+                btn.classList.add('border-rose-500', 'bg-rose-500/10');
+                map.getContainer().style.cursor = 'crosshair';
+                map.doubleClickZoom.disable(); // Impede zoom ao finalizar duplo clique
+                clearSelection();
+                map.closePopup();
+                alert("Modo de Medição Ativo:\n- Clique no mapa para desenhar pontos.\n- Clique duplo para finalizar a medição de perímetro e área.");
+            } else {
+                btn.classList.remove('border-rose-500', 'bg-rose-500/10');
+                map.getContainer().style.cursor = '';
+                map.doubleClickZoom.enable();
+                resetMeasure();
+            }
+        }
+
+        function resetMeasure() {
+            measurePoints = [];
+            if (measureLine) { map.removeLayer(measureLine); measureLine = null; }
+            if (measurePolygon) { map.removeLayer(measurePolygon); measurePolygon = null; }
+            measureMarkers.forEach(m => map.removeLayer(m));
+            measureMarkers = [];
+            if (measurePopup) { map.removeLayer(measurePopup); measurePopup = null; }
+        }
+
+        // 10. GEOLOCALIZAÇÃO
+        function locateUser() {
+            if (!map) return;
+            map.locate({ setView: true, maxZoom: 16 });
+        }
+
+        // 11. PESQUISA AVANÇADA COM FILTRO DE CHIPS
+        const searchInput = document.getElementById('search-input');
+        const searchResults = document.getElementById('search-results');
+        const clearSearchBtn = document.getElementById('clear-search-btn');
+
+        searchInput.addEventListener('input', triggerSearch);
+
+        function triggerSearch() {
+            const query = searchInput.value.trim().toLowerCase();
+            
+            if (query.length > 0) {
+                clearSearchBtn.classList.remove('hidden');
+                
+                const filtered = searchDb.filter(item => 
+                    item.name.toLowerCase().includes(query) || 
+                    (item.zone && item.zone.toLowerCase().includes(query))
+                ).slice(0, 15);
+
+                renderSearchResults(filtered);
+            } else {
+                clearSearchBtn.classList.add('hidden');
+                searchResults.classList.add('hidden');
+            }
+        }
+
+        clearSearchBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            clearSearchBtn.classList.add('hidden');
+            searchResults.classList.add('hidden');
+        });
+
+        function renderSearchResults(results) {
+            searchResults.innerHTML = '';
+            
+            if (results.length === 0) {
+                searchResults.innerHTML = `
+                    <div class="p-4 text-xs text-slate-500 text-center flex flex-col items-center gap-1">
+                        <i data-lucide="alert-circle" class="w-4 h-4 text-slate-600"></i>
+                        Nenhum resultado encontrado.
+                    </div>
+                `;
+                searchResults.classList.remove('hidden');
+                lucide.createIcons();
+                return;
+            }
+
+            results.forEach(item => {
+                const div = document.createElement('div');
+                div.className = "flex flex-col px-4 py-2.5 hover:bg-slate-900 border-b border-slate-900/50 cursor-pointer transition-colors";
+                const badgeColor = item.type === 'bairros' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+                
+                div.innerHTML = `
+                    <div class="flex justify-between items-center gap-2">
+                        <span class="text-xs font-bold text-white truncate">${item.name}</span>
+                        <span class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${badgeColor}">${item.typeName}</span>
+                    </div>
+                    <span class="text-[10px] text-slate-500 mt-0.5">${item.zone || 'Sem Zona'}</span>
+                `;
+
+                div.addEventListener('click', function() {
+                    gotoFeature(item);
+                });
+
+                searchResults.appendChild(div);
+            });
+            searchResults.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function gotoFeature(item) {
+            searchResults.classList.add('hidden');
+            let targetLayer = null;
+            const targetCollection = item.type === 'bairros' ? bairrosLayer : localidadesLayer;
+            
+            if (!layersStatus[item.type]) {
+                layersStatus[item.type] = true;
+                toggleButtonUI(item.type, targetCollection);
+                updateLegend();
+            }
+
+            targetCollection.eachLayer(layer => {
+                const f = layer.feature;
+                const id = f.id !== undefined ? f.id : (f.properties.fid || f.properties.OBJECTID);
+                if (id === item.layerId) {
+                    targetLayer = layer;
+                }
+            });
+
+            if (targetLayer) {
+                const center = getCentroide(targetLayer);
+                if (center) {
+                    map.flyTo(center, item.type === 'bairros' ? 14 : 16, {
+                        animate: true,
+                        duration: 1.5
+                    });
+                    
+                    setTimeout(() => {
+                        selectFeature(targetLayer, item.feature.properties, item.type);
+                        targetLayer.bindPopup(makePopupContent(item.feature.properties, item.type, center.lat, center.lng)).openPopup(center);
+                    }, 1500);
+                }
+            }
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.classList.add('hidden');
+            }
+        });
+
+        // 12. COMPORTAMENTO DE EXPANDIR CONTROLE DE CAMADAS
+        const btnMenuLayers = document.getElementById('btn-menu-layers');
+        const panelLayers = document.getElementById('panel-layers');
+        const btnClosePanel = document.getElementById('btn-close-panel');
+
+        btnMenuLayers.addEventListener('click', function() {
+            panelLayers.classList.toggle('hidden');
+        });
+
+        btnClosePanel.addEventListener('click', function() {
+            panelLayers.classList.add('hidden');
+        });
+
+        // 13. IMPRESSÃO SUPORTE E LEGENDA DINÂMICA DE PAPEL
+        window.addEventListener('beforeprint', () => {
+            const legendHtml = document.getElementById('legend-content').innerHTML;
+            let printHtml = legendHtml
+                .replaceAll('text-slate-300', 'text-slate-800')
+                .replaceAll('text-slate-400', 'text-slate-800')
+                .replaceAll('border-slate-900', 'border-slate-300')
+                .replaceAll('mt-2', 'mt-1')
+                .replaceAll('pt-2', 'pt-1');
+            document.getElementById('print-legend-items').innerHTML = printHtml;
+        });
+
+        // 14. MAPA AUXILIARES
+        function zoomToManaus() {
+            if (map) {
+                map.flyTo([-3.1190, -60.0217], 12, {
+                    animate: true,
+                    duration: 1.5
+                });
+            }
+        }
+
+        function clearSelection() {
+            if (selectedLayer) {
+                if (selectedLayer.options.layerType === 'bairros') {
+                    bairrosLayer.resetStyle(selectedLayer);
+                } else if (selectedLayer.options.layerType === 'localidades') {
+                    localidadesLayer.resetStyle(selectedLayer);
+                }
+                selectedLayer = null;
+            }
+            if (map) map.closePopup();
+        }
+
+        // 14. FUNÇÕES DE SUPORTE E UTILITÁRIAS
+        function getCentroide(layer) {
+            if (!layer) return null;
+            if (typeof layer.getBounds === 'function') {
+                return layer.getBounds().getCenter();
+            } else if (typeof layer.getLatLng === 'function') {
+                return layer.getLatLng();
+            }
+            return null;
+        }
+
+        function showToast(message, type = 'success') {
+            const existingToast = document.getElementById('gis-toast');
+            if (existingToast) existingToast.remove();
+
+            const toast = document.createElement('div');
+            toast.id = 'gis-toast';
+            toast.className = `fixed bottom-20 left-1/2 -translate-x-1/2 z-[9999] px-4 py-2.5 rounded-xl border backdrop-blur-md shadow-2xl flex items-center gap-2 text-xs font-semibold transition-all duration-300 transform translate-y-2 opacity-0`;
+            
+            if (type === 'success') {
+                toast.className += ' bg-slate-950/95 border-emerald-500/30 text-emerald-400';
+                toast.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i> <span>${message}</span>`;
+            } else {
+                toast.className += ' bg-slate-950/95 border-red-500/30 text-red-400';
+                toast.innerHTML = `<i data-lucide="alert-circle" class="w-4 h-4 text-red-400"></i> <span>${message}</span>`;
+            }
+
+            document.body.appendChild(toast);
+            lucide.createIcons();
+
+            // Animar entrada
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            // Animar saída e remover
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function copyToClipboard(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast("Coordenadas copiadas: " + text);
+                }).catch(err => {
+                    console.error('Erro ao copiar coordenadas: ', err);
+                    showToast("Erro ao copiar coordenadas", "error");
+                });
+            } else {
+                // Fallback para navegadores sem HTTPS/localhost
+                const textarea = document.createElement("textarea");
+                textarea.value = text;
+                textarea.style.position = "fixed";
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand("copy");
+                    showToast("Coordenadas copiadas: " + text);
+                } catch (err) {
+                    console.error("Erro no fallback de cópia: ", err);
+                    showToast("Erro ao copiar coordenadas", "error");
+                }
+                document.body.removeChild(textarea);
+            }
+        }
+
+        // 15. LÓGICA DO RELATÓRIO HTML CARTOGRÁFICO
+        let reportMap = null;
+        let reportBairrosLayer = null;
+        let reportLocalidadesLayer = null;
+
+        function openReportModal() {
+            const modal = document.getElementById('report-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            // Atualiza data do relatório
+            const dateSpan = document.getElementById('report-date');
+            const now = new Date();
+            dateSpan.innerText = now.toLocaleDateString('pt-BR') + ' às ' + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+            // Preeche dados de feição selecionada
+            const infoContainer = document.getElementById('report-info-content');
+            if (selectedLayer) {
+                const props = selectedLayer.feature.properties;
+                const type = selectedLayer.options.layerType;
+                const name = props.NOME_LOCAL || props.NOME_BAIRR || props.NOME || "Sem Nome";
+                const zone = props.ZONAS || "Não Informada";
+                const tipo = props.TIPO_1 || (type === 'bairros' ? 'Bairro Oficial' : 'Localidade');
+                const bairroParent = props.BAIRRO_1 || "-";
+                const center = getCentroide(selectedLayer);
+                const lat = center ? center.lat.toFixed(5) : "-";
+                const lng = center ? center.lng.toFixed(5) : "-";
+
+                infoContainer.innerHTML = `
+                    <div class="flex flex-col">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase">Feição Selecionada</span>
+                        <span class="font-bold text-slate-900">${name}</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase">Tipo</span>
+                        <span class="font-semibold text-slate-800">${tipo}</span>
+                    </div>
+                    <div class="flex flex-col mt-2">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase">Zona Administrativa</span>
+                        <span class="font-semibold text-slate-800">${zone}</span>
+                    </div>
+                    ${type !== 'bairros' ? `
+                    <div class="flex flex-col mt-2">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase">Bairro Pertencente</span>
+                        <span class="font-semibold text-slate-800">${bairroParent}</span>
+                    </div>` : `
+                    <div class="flex flex-col mt-2">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase">Centroide da Feição</span>
+                        <span class="font-semibold font-mono text-emerald-600">${lat}, ${lng}</span>
+                    </div>`}
+                `;
+            } else {
+                infoContainer.innerHTML = `
+                    <div class="col-span-2 flex flex-col py-1">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase">Escopo de Visualização</span>
+                        <span class="font-semibold text-slate-600">Visão Geral do Município de Manaus (Nenhuma feição selecionada especificamente)</span>
+                    </div>
+                `;
+            }
+
+            // Replica Legenda Cartográfica no Relatório
+            const reportLegendContainer = document.getElementById('report-legend-items');
+            reportLegendContainer.innerHTML = '';
+            
+            let hasLegend = false;
+            if (layersStatus.bairros && !layersStatus.zonas) {
+                hasLegend = true;
+                reportLegendContainer.innerHTML += `
+                    <div class="flex items-center gap-1.5 text-slate-700">
+                        <span class="w-3.5 h-2.5 bg-blue-500/20 border border-blue-500 rounded"></span>
+                        <span>Bairros Oficiais</span>
+                    </div>
+                `;
+            }
+            if (layersStatus.zonas) {
+                hasLegend = true;
+                Object.keys(zoneColors).forEach(z => {
+                    reportLegendContainer.innerHTML += `
+                        <div class="flex items-center gap-1 text-slate-700">
+                            <span class="w-3 h-2 rounded style-legend" style="background-color: ${zoneColors[z]}40; border: 1px solid ${zoneColors[z]}; width: 12px; height: 8px;"></span>
+                            <span>${z.replace('ZONA ', '')}</span>
+                        </div>
+                    `;
+                });
+            }
+            if (layersStatus.localidades) {
+                hasLegend = true;
+                reportLegendContainer.innerHTML += `
+                    <div class="flex items-center gap-1.5 text-slate-700">
+                        <span class="w-3 h-3 rounded-full bg-orange-500/40 border border-orange-500"></span>
+                        <span>Localidades (Ponto)</span>
+                    </div>
+                `;
+            }
+            if (!hasLegend) {
+                reportLegendContainer.innerHTML = `<span class="text-slate-400 italic">Nenhuma camada ativa no recorte.</span>`;
+            }
+
+            // Inicializa e Sincroniza o Mapa do Relatório
+            setTimeout(() => {
+                if (reportMap) {
+                    reportMap.remove();
+                }
+
+                reportMap = L.map('report-map', {
+                    zoomControl: true,
+                    attributionControl: false,
+                    dragging: true,
+                    scrollWheelZoom: true,
+                    doubleClickZoom: true,
+                    boxZoom: true
+                }).setView(map.getCenter(), map.getZoom());
+
+                // Cria e adiciona uma NOVA INSTÂNCIA do basemap atualmente ativo no mapa principal
+                const reportBaseLayer = createBaseLayer(currentBaseLayer);
+                if (reportBaseLayer) {
+                    reportBaseLayer.addTo(reportMap);
+                }
+
+                // Adiciona camadas no mapa do relatório com interatividade própria de impressão
+                if (layersStatus.bairros) {
+                    reportBairrosLayer = L.geoJSON(bairrosData, {
+                        style: styleBairros,
+                        onEachFeature: function(feature, layer) {
+                            onEachFeatureReport(feature, layer, 'bairros');
+                        }
+                    }).addTo(reportMap);
+                }
+
+                if (layersStatus.localidades) {
+                    reportLocalidadesLayer = L.geoJSON(localidadesData, {
+                        style: styleLocalidades,
+                        onEachFeature: function(feature, layer) {
+                            onEachFeatureReport(feature, layer, 'localidades');
+                        }
+                    }).addTo(reportMap);
+                }
+
+                // Destaca feição selecionada no mapa de relatório se houver
+                if (selectedLayer && (layersStatus.bairros || layersStatus.localidades)) {
+                    const selectedProps = selectedLayer.feature.properties;
+                    const selectedType = selectedLayer.options.layerType;
+                    const targetReportLayerCollection = selectedType === 'bairros' ? reportBairrosLayer : reportLocalidadesLayer;
+
+                    if (targetReportLayerCollection) {
+                        targetReportLayerCollection.eachLayer(l => {
+                            const f = l.feature;
+                            const id = f.id !== undefined ? f.id : (f.properties.fid || f.properties.OBJECTID);
+                            const selectedId = selectedProps.fid || selectedProps.OBJECTID || selectedLayer.feature.id;
+                            
+                            if (id === selectedId) {
+                                l.setStyle({
+                                    weight: 3.5,
+                                    color: "#10b981", // Destaque em verde esmeralda
+                                    fillOpacity: 0.55
+                                });
+                            }
+                        });
+                    }
+                }
+
+                // Invalida tamanho para renderização correta
+                reportMap.invalidateSize();
+                lucide.createIcons();
+            }, 200);
+        }
+
+        function closeReportModal() {
+            const modal = document.getElementById('report-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            
+            if (reportMap) {
+                reportMap.remove();
+                reportMap = null;
+            }
+        }
+
+        // 16. INTERATIVIDADE E EVENTOS DO MAPA DE RELATÓRIO
+        let selectedReportLayer = null;
+
+        function highlightFeatureReport(layer, type) {
+            if (selectedReportLayer && selectedReportLayer !== layer) {
+                if (selectedReportLayer.options.layerType === 'bairros') {
+                    reportBairrosLayer.resetStyle(selectedReportLayer);
+                } else if (selectedReportLayer.options.layerType === 'localidades') {
+                    reportLocalidadesLayer.resetStyle(selectedReportLayer);
+                }
+            }
+            selectedReportLayer = layer;
+            layer.setStyle({
+                weight: 3.5,
+                color: "#10b981", // Destaque em verde esmeralda na impressão
+                fillOpacity: 0.55
+            });
+        }
+
+        function onEachFeatureReport(feature, layer, type) {
+            layer.options.layerType = type;
+            
+            // Adiciona rótulos permanentes de bairros se a opção estiver ativa na tela principal
+            if (type === 'bairros' && isLabelsActive) {
+                layer.bindTooltip(feature.properties.NOME_BAIRR, {
+                    permanent: true,
+                    direction: 'center',
+                    className: 'leaflet-tooltip-permanent-bairro select-none pointer-events-none'
+                }).openTooltip();
+            }
+
+            layer.on({
+                click: function (e) {
+                    const center = getCentroide(layer);
+                    const lat = center ? center.lat : e.latlng.lat;
+                    const lng = center ? center.lng : e.latlng.lng;
+                    
+                    // Destaca a feição localmente no relatório
+                    highlightFeatureReport(layer, type);
+                    
+                    // Abre o popup na feição
+                    layer.bindPopup(makePopupContent(feature.properties, type, lat, lng)).openPopup(center || e.latlng);
+                    setTimeout(() => {
+                        lucide.createIcons();
+                    }, 50);
+                },
+                mouseover: function (e) {
+                    if (layer !== selectedReportLayer) {
+                        layer.setStyle({
+                            weight: 2.5,
+                            color: type === 'bairros' ? '#38bdf8' : '#f97316',
+                            fillOpacity: type === 'bairros' ? 0.45 : 0.6
+                        });
+                    }
+
+                    // Tooltip flutuante temporário de hover
+                    const isBairroLabelActive = (type === 'bairros' && isLabelsActive);
+                    if (!isBairroLabelActive) {
+                        const name = feature.properties.NOME_LOCAL || feature.properties.NOME_BAIRR || feature.properties.NOME || "Sem Nome";
+                        const labelType = type === 'bairros' ? 'Bairro' : (feature.properties.TIPO_1 || 'Localidade');
+                        layer.bindTooltip(`
+                            <div class="flex flex-col gap-0.5 select-none pointer-events-none">
+                                <span class="text-[8px] font-bold text-emerald-400 uppercase tracking-wide">${labelType}</span>
+                                <span class="text-xs font-bold text-slate-100">${name}</span>
+                            </div>
+                        `, {
+                            sticky: true,
+                            direction: 'auto',
+                            className: 'leaflet-tooltip-custom select-none pointer-events-none'
+                        }).openTooltip();
+                    }
+                },
+                mouseout: function (e) {
+                    if (layer !== selectedReportLayer) {
+                        if (type === 'bairros') {
+                            reportBairrosLayer.resetStyle(layer);
+                        } else if (type === 'localidades') {
+                            reportLocalidadesLayer.resetStyle(layer);
+                        }
+                    }
+
+                    const isBairroLabelActive = (type === 'bairros' && isLabelsActive);
+                    if (!isBairroLabelActive) {
+                        layer.unbindTooltip();
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
