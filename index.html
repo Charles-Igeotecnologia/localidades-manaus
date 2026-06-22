@@ -211,6 +211,181 @@
             pointer-events: none !important;
             transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) !important;
         }
+
+        /* Animações de Pulso Cartográfico (Sonar Ping) Premium */
+        @keyframes marker-pop-in {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            70% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes core-pulse-green {
+            0% {
+                box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+            }
+            100% {
+                box-shadow: 0 0 18px rgba(16, 185, 129, 1), 0 0 6px rgba(16, 185, 129, 0.4);
+            }
+        }
+
+        @keyframes core-pulse-blue {
+            0% {
+                box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+            }
+            100% {
+                box-shadow: 0 0 18px rgba(59, 130, 246, 1), 0 0 6px rgba(59, 130, 246, 0.4);
+            }
+        }
+
+        @keyframes sonar-expand-1 {
+            0% {
+                transform: scale(0.2);
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.55;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 0;
+            }
+        }
+
+        @keyframes sonar-expand-2 {
+            0% {
+                transform: scale(0.2);
+                opacity: 0.85;
+            }
+            50% {
+                opacity: 0.45;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 0;
+            }
+        }
+
+        .sonar-ping-green {
+            position: relative;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background-color: #10b981; /* Verde esmeralda */
+            border: 2.5px solid #ffffff;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+            animation: marker-pop-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, core-pulse-green 1.2s ease-in-out infinite alternate;
+        }
+        
+        .sonar-ping-green::before {
+            content: '';
+            position: absolute;
+            top: -17px;
+            left: -17px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 2px solid #10b981;
+            opacity: 0;
+            animation: sonar-expand-1 2.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+        }
+
+        .sonar-ping-green::after {
+            content: '';
+            position: absolute;
+            top: -17px;
+            left: -17px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 2px solid rgba(16, 185, 129, 0.65);
+            opacity: 0;
+            animation: sonar-expand-2 2.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+            animation-delay: 1.1s;
+        }
+
+        .sonar-ping-blue-selector {
+            position: relative;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background-color: #3b82f6; /* Azul */
+            border: 2.5px solid #ffffff;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
+            animation: marker-pop-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, core-pulse-blue 1.2s ease-in-out infinite alternate;
+        }
+        
+        .sonar-ping-blue-selector::before {
+            content: '';
+            position: absolute;
+            top: -17px;
+            left: -17px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 2px solid #3b82f6;
+            opacity: 0;
+            animation: sonar-expand-1 2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+        }
+
+        .sonar-ping-blue-selector::after {
+            content: '';
+            position: absolute;
+            top: -17px;
+            left: -17px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 2px solid rgba(59, 130, 246, 0.65);
+            opacity: 0;
+            animation: sonar-expand-2 2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+            animation-delay: 1s;
+        }
+
+        .sonar-ping-blue {
+            position: relative;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background-color: #3b82f6; /* Azul GPS */
+            border: 2.5px solid #ffffff;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
+            animation: marker-pop-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, core-pulse-blue 1.2s ease-in-out infinite alternate;
+        }
+        
+        .sonar-ping-blue::before {
+            content: '';
+            position: absolute;
+            top: -17px;
+            left: -17px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 2px solid #3b82f6;
+            opacity: 0;
+            animation: sonar-expand-1 2.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+        }
+
+        .sonar-ping-blue::after {
+            content: '';
+            position: absolute;
+            top: -17px;
+            left: -17px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 2px solid rgba(59, 130, 246, 0.65);
+            opacity: 0;
+            animation: sonar-expand-2 2.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+            animation-delay: 1.2s;
+        }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans h-screen w-screen overflow-hidden select-none">
@@ -226,7 +401,7 @@
         <!-- Conteúdo Central -->
         <div class="flex flex-col items-center gap-6 max-w-[580px] z-10">
             <!-- Círculo do Ícone Central -->
-            <div class="w-24 h-24 rounded-full bg-emerald-500/10 border border-emerald-500/20 shadow-[0_0_40px_rgba(16,185,129,0.15)] flex items-center justify-center relative group">
+            <div class="w-24 h-24 rounded-full bg-emerald-500/10 border border-emerald-500/20 shadow-[0_0_40px_rgba(16,185,129,0.15)] flex items-center justify-center relative group animate-pulse">
                 <div class="absolute inset-0 rounded-full bg-emerald-500/5 blur-md group-hover:bg-emerald-500/10 transition-all"></div>
                 <i data-lucide="map-pin" class="w-10 h-10 text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]"></i>
             </div>
@@ -727,12 +902,15 @@
                     weight: 1
                 }).addTo(map);
                 
-                locateMarker = L.circleMarker(e.latlng, {
-                    radius: 7,
-                    color: '#ffffff',
-                    fillColor: '#3b82f6',
-                    fillOpacity: 1,
-                    weight: 2
+                const gpsIcon = L.divIcon({
+                    className: 'bg-transparent',
+                    html: '<div class="sonar-ping-blue"></div>',
+                    iconSize: [14, 14],
+                    iconAnchor: [7, 7]
+                });
+                
+                locateMarker = L.marker(e.latlng, {
+                    icon: gpsIcon
                 }).addTo(map).bindPopup("Você está aqui! (Precisão: " + Math.round(e.accuracy) + "m)").openPopup();
             });
 
@@ -1198,7 +1376,15 @@
 
         // 8. POPUPS COM DADOS COMPLETOS E INTEGRAÇÃO DE CLIQUE
         
+        let selectionPulseMarker = null;
+
         function selectFeature(layer, props, type) {
+            // Limpa o pulso de seleção anterior
+            if (selectionPulseMarker) {
+                map.removeLayer(selectionPulseMarker);
+                selectionPulseMarker = null;
+            }
+
             if (selectedLayer && selectedLayer !== layer) {
                 if (selectedLayer.options.layerType === 'bairros') {
                     bairrosLayer.resetStyle(selectedLayer);
@@ -1214,6 +1400,23 @@
                 color: "#10b981",
                 fillOpacity: 0.55
             });
+
+            // Adiciona o pulso animado (Sonar Ping) no centroide do ponto ou polígono selecionado
+            const center = getCentroide(layer);
+            if (center && map) {
+                const pulseClass = type === 'bairros' ? 'sonar-ping-blue-selector' : 'sonar-ping-green';
+                const pulseIcon = L.divIcon({
+                    className: 'bg-transparent',
+                    html: `<div class="${pulseClass}"></div>`,
+                    iconSize: [14, 14],
+                    iconAnchor: [7, 7]
+                });
+
+                selectionPulseMarker = L.marker(center, {
+                    icon: pulseIcon,
+                    interactive: false
+                }).addTo(map);
+            }
         }
 
         function makePopupContent(props, type, lat, lng) {
@@ -1511,6 +1714,11 @@
         }
 
         function clearSelection() {
+            // Remove o pulso de seleção ativo
+            if (selectionPulseMarker) {
+                map.removeLayer(selectionPulseMarker);
+                selectionPulseMarker = null;
+            }
             if (selectedLayer) {
                 if (selectedLayer.options.layerType === 'bairros') {
                     bairrosLayer.resetStyle(selectedLayer);
