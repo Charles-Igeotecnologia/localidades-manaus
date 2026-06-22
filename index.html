@@ -188,9 +188,101 @@
                  0px    0px  5px rgba(0,0,0,0.8) !important;
             pointer-events: none !important;
         }
+
+        /* Estilos da Tela de Boas-Vindas */
+        .welcome-grid-bg {
+            background-image: 
+                linear-gradient(rgba(16, 185, 129, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(16, 185, 129, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: center;
+            background-color: #030712;
+        }
+        
+        .welcome-radial-glow {
+            background: 
+                radial-gradient(circle at 50% 45%, rgba(16, 185, 129, 0.09) 0%, transparent 55%),
+                radial-gradient(circle at 95% 95%, rgba(30, 64, 175, 0.12) 0%, transparent 50%),
+                radial-gradient(circle at 5% 5%, rgba(16, 185, 129, 0.06) 0%, transparent 50%);
+        }
+
+        .welcome-fade-out {
+            opacity: 0 !important;
+            pointer-events: none !important;
+            transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans h-screen w-screen overflow-hidden select-none">
+
+    <!-- TELA DE BOAS-VINDAS (INTRO SCREEN) -->
+    <div id="welcome-screen" class="fixed inset-0 z-[20000] welcome-grid-bg flex flex-col justify-between items-center p-6 text-center select-none overflow-hidden transition-opacity duration-500">
+        <!-- Glow radiais por trás -->
+        <div class="absolute inset-0 welcome-radial-glow pointer-events-none z-0"></div>
+        
+        <!-- Elemento de Espaço Superior para Alinhamento Vertical -->
+        <div class="h-10 z-10 pointer-events-none"></div>
+
+        <!-- Conteúdo Central -->
+        <div class="flex flex-col items-center gap-6 max-w-[580px] z-10">
+            <!-- Círculo do Ícone Central -->
+            <div class="w-24 h-24 rounded-full bg-emerald-500/10 border border-emerald-500/20 shadow-[0_0_40px_rgba(16,185,129,0.15)] flex items-center justify-center relative group">
+                <div class="absolute inset-0 rounded-full bg-emerald-500/5 blur-md group-hover:bg-emerald-500/10 transition-all"></div>
+                <i data-lucide="map-pin" class="w-10 h-10 text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]"></i>
+            </div>
+
+            <!-- Título e Subtítulo -->
+            <div class="flex flex-col gap-3">
+                <h1 class="text-4xl md:text-5xl font-black text-white tracking-tight">
+                    Web GIS <span class="text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.3)]">Manaus</span>
+                </h1>
+                <p class="text-sm md:text-base text-slate-400 font-medium leading-relaxed px-4">
+                    Plataforma interativa para visualização, análise cartográfica e geração de relatórios das divisões administrativas e localidades do município.
+                </p>
+            </div>
+
+            <!-- Card de Controle / Recursos -->
+            <div class="w-full max-w-[420px] bg-slate-950/40 backdrop-blur-md border border-slate-800/80 rounded-[32px] p-6 md:p-8 flex flex-col gap-6 shadow-2xl mt-2">
+                <!-- 3 Recursos -->
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="flex flex-col items-center gap-2">
+                        <div class="p-2.5 rounded-xl bg-emerald-500/5 text-emerald-400 border border-emerald-500/10">
+                            <i data-lucide="layers" class="w-5 h-5"></i>
+                        </div>
+                        <span class="text-[10px] font-bold text-slate-400 tracking-wide">Dados Vetoriais</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2">
+                        <div class="p-2.5 rounded-xl bg-emerald-500/5 text-emerald-400 border border-emerald-500/10">
+                            <i data-lucide="file-text" class="w-5 h-5"></i>
+                        </div>
+                        <span class="text-[10px] font-bold text-slate-400 tracking-wide">Relatórios A4</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2">
+                        <div class="p-2.5 rounded-xl bg-emerald-500/5 text-emerald-400 border border-emerald-500/10">
+                            <i data-lucide="ruler" class="w-5 h-5"></i>
+                        </div>
+                        <span class="text-[10px] font-bold text-slate-400 tracking-wide">Análise Espacial</span>
+                    </div>
+                </div>
+
+                <!-- Botão de Acesso -->
+                <button onclick="enterPlatform()" class="w-full bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-slate-950 font-black py-4 px-6 rounded-2xl flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(16,185,129,0.25)] text-sm tracking-wider uppercase">
+                    <span>Acessar Plataforma</span>
+                    <i data-lucide="arrow-right" class="w-4.5 h-4.5"></i>
+                </button>
+
+                <!-- Aviso Desktop/Tablet -->
+                <span class="text-[10px] font-bold text-slate-500">
+                    Recomendado para uso em desktop/tablet para melhor experiência.
+                </span>
+            </div>
+        </div>
+
+        <!-- Rodapé da Página -->
+        <footer class="text-[10px] font-bold text-slate-600 tracking-wide z-10 py-2">
+            &copy; 2024 Web GIS Manaus · Dados Espaciais Oficiais e Informais
+        </footer>
+    </div>
 
     <!-- MAPA LEAFLET EM TELA CHEIA -->
     <main class="w-full h-full relative z-10">
@@ -1763,6 +1855,21 @@
                     }
                 }
             });
+        }
+
+        // 17. CONTROLE DA TELA DE BOAS-VINDAS (INTRO SCREEN)
+        function enterPlatform() {
+            const welcomeScreen = document.getElementById('welcome-screen');
+            welcomeScreen.classList.add('welcome-fade-out');
+            
+            // Aguarda a transição de fade-out e remove o elemento do DOM
+            setTimeout(() => {
+                welcomeScreen.classList.add('hidden');
+                // Força o mapa a invalidar o tamanho, garantindo renderização correta
+                if (map) {
+                    map.invalidateSize();
+                }
+            }, 600);
         }
     </script>
 </body>
