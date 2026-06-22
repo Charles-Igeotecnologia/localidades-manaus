@@ -390,72 +390,328 @@
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans h-screen w-screen overflow-hidden select-none">
 
-    <!-- TELA DE BOAS-VINDAS (INTRO SCREEN) -->
-    <div id="welcome-screen" class="fixed inset-0 z-[20000] welcome-grid-bg flex flex-col justify-between items-center p-6 text-center select-none overflow-hidden transition-opacity duration-500">
+    <!-- TELA DE BOAS-VINDAS (LANDING PAGE INSTITUCIONAL PREMIUM) -->
+    <div id="welcome-screen" class="fixed inset-0 z-[20000] welcome-grid-bg overflow-y-auto transition-opacity duration-500 scroll-smooth pb-12 select-text">
         <!-- Glow radiais por trás -->
         <div class="absolute inset-0 welcome-radial-glow pointer-events-none z-0"></div>
-        
-        <!-- Elemento de Espaço Superior para Alinhamento Vertical -->
-        <div class="h-10 z-10 pointer-events-none"></div>
 
-        <!-- Conteúdo Central -->
-        <div class="flex flex-col items-center gap-6 max-w-[580px] z-10">
-            <!-- Círculo do Ícone Central -->
-            <div class="w-24 h-24 rounded-full bg-emerald-500/10 border border-emerald-500/20 shadow-[0_0_40px_rgba(16,185,129,0.15)] flex items-center justify-center relative group animate-pulse">
-                <div class="absolute inset-0 rounded-full bg-emerald-500/5 blur-md group-hover:bg-emerald-500/10 transition-all"></div>
-                <i data-lucide="map-pin" class="w-10 h-10 text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]"></i>
+        <!-- HEADER DA LANDING PAGE -->
+        <header class="w-full max-w-7xl mx-auto px-6 py-4 flex justify-between items-center sticky top-0 z-50 bg-slate-950/60 backdrop-blur-md border-b border-slate-900/50">
+            <div class="flex items-center gap-2.5">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                    <i data-lucide="map-pin" class="w-5 h-5 text-emerald-400"></i>
+                </div>
+                <span class="text-base font-black text-white tracking-tight">Web GIS <span class="text-emerald-400">Manaus</span></span>
             </div>
+            <nav class="hidden md:flex items-center gap-8 text-xs font-bold text-slate-400">
+                <button onclick="scrollToSection('hero')" class="hover:text-white transition-colors cursor-pointer">Início</button>
+                <button onclick="scrollToSection('features')" class="hover:text-white transition-colors cursor-pointer">Funcionalidades</button>
+                <button onclick="scrollToSection('basemaps')" class="hover:text-white transition-colors cursor-pointer">Bases de Mapa</button>
+                <button onclick="scrollToSection('territory')" class="hover:text-white transition-colors cursor-pointer">Território</button>
+            </nav>
+            <button onclick="enterPlatform()" class="bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-black px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-[0_0_15px_rgba(16,185,129,0.15)] uppercase tracking-wider cursor-pointer">
+                <span>Entrar no App</span>
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </button>
+        </header>
 
-            <!-- Título e Subtítulo -->
-            <div class="flex flex-col gap-3">
-                <h1 class="text-4xl md:text-5xl font-black text-white tracking-tight">
-                    Web GIS <span class="text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.3)]">Manaus</span>
+        <!-- HERO SECTION -->
+        <section id="hero" class="w-full max-w-7xl mx-auto px-6 pt-16 pb-12 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
+            <div class="lg:col-span-7 flex flex-col gap-6 text-left">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/5 border border-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase tracking-wider w-fit">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Plataforma Cartográfica Ativa
+                </div>
+                <h1 class="text-4xl md:text-6xl font-black text-white leading-[1.1] tracking-tight">
+                    Visualize os <span class="text-emerald-400">Bairros</span>, <span class="text-sky-400">Zonas</span> e <span class="text-orange-400">Localidades</span> de Manaus
                 </h1>
-                <p class="text-sm md:text-base text-slate-400 font-medium leading-relaxed px-4">
-                    Plataforma interativa para visualização, análise cartográfica e geração de relatórios das divisões administrativas e localidades do município.
+                <p class="text-sm md:text-base text-slate-400 font-medium leading-relaxed max-w-[620px]">
+                    Plataforma Web GIS construída com Leaflet.js, Tailwind CSS e Lucide Icons. Interface moderna, rápida e repleta de recursos premium — para navegação, análise e geração de relatórios cartográficos.
                 </p>
+                <div class="flex flex-wrap items-center gap-4 mt-2">
+                    <button onclick="enterPlatform()" class="bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-black px-7 py-4 rounded-2xl text-xs flex items-center gap-2 transition-all shadow-[0_0_25px_rgba(16,185,129,0.2)] uppercase tracking-wider cursor-pointer">
+                        <span>Acessar a Aplicação</span>
+                        <i data-lucide="compass" class="w-4 h-4"></i>
+                    </button>
+                    <button onclick="scrollToSection('features')" class="bg-slate-900 border border-slate-800 hover:border-slate-700 active:scale-95 text-slate-200 font-bold px-7 py-4 rounded-2xl text-xs flex items-center gap-2 transition-all uppercase tracking-wider cursor-pointer">
+                        <span>Ver Funcionalidades</span>
+                        <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400"></i>
+                    </button>
+                </div>
             </div>
-
-            <!-- Card de Controle / Recursos -->
-            <div class="w-full max-w-[420px] bg-slate-950/40 backdrop-blur-md border border-slate-800/80 rounded-[32px] p-6 md:p-8 flex flex-col gap-6 shadow-2xl mt-2">
-                <!-- 3 Recursos -->
-                <div class="grid grid-cols-3 gap-2">
-                    <div class="flex flex-col items-center gap-2">
-                        <div class="p-2.5 rounded-xl bg-emerald-500/5 text-emerald-400 border border-emerald-500/10">
-                            <i data-lucide="layers" class="w-5 h-5"></i>
+            
+            <!-- Lado direito: Visual Mockup Cartográfico Interativo -->
+            <div class="lg:col-span-5 flex justify-center items-center">
+                <div class="relative w-full max-w-[390px] aspect-square rounded-[36px] bg-slate-950/40 backdrop-blur-md border border-slate-800/80 p-8 flex flex-col justify-center items-center shadow-3xl group overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-tr from-emerald-500/5 to-transparent pointer-events-none"></div>
+                    
+                    <!-- Grid cartográfico interno estético -->
+                    <div class="absolute inset-4 rounded-[28px] border border-slate-900/50 welcome-grid-bg opacity-30"></div>
+                    
+                    <!-- Ponto central animado de radar sci-fi -->
+                    <div class="w-24 h-24 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center relative animate-pulse">
+                        <div class="absolute -inset-4 rounded-full border border-emerald-500/10 animate-ping" style="animation-duration: 3s;"></div>
+                        <div class="absolute -inset-8 rounded-full border border-emerald-500/5 animate-ping" style="animation-duration: 4s;"></div>
+                        <div class="w-12 h-12 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
+                            <i data-lucide="map" class="w-6 h-6 text-emerald-400"></i>
                         </div>
-                        <span class="text-[10px] font-bold text-slate-400 tracking-wide">Dados Vetoriais</span>
                     </div>
-                    <div class="flex flex-col items-center gap-2">
-                        <div class="p-2.5 rounded-xl bg-emerald-500/5 text-emerald-400 border border-emerald-500/10">
-                            <i data-lucide="file-text" class="w-5 h-5"></i>
-                        </div>
-                        <span class="text-[10px] font-bold text-slate-400 tracking-wide">Relatórios A4</span>
-                    </div>
-                    <div class="flex flex-col items-center gap-2">
-                        <div class="p-2.5 rounded-xl bg-emerald-500/5 text-emerald-400 border border-emerald-500/10">
-                            <i data-lucide="ruler" class="w-5 h-5"></i>
-                        </div>
-                        <span class="text-[10px] font-bold text-slate-400 tracking-wide">Análise Espacial</span>
+                    
+                    <div class="flex flex-col gap-1 text-center mt-6">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Coordenadas Centrais</span>
+                        <span class="text-sm font-bold text-emerald-400 font-mono">-3.119027, -60.021731</span>
+                        <span class="text-[9px] font-bold text-slate-600 uppercase tracking-widest mt-1">Manaus, Amazonas</span>
                     </div>
                 </div>
-
-                <!-- Botão de Acesso -->
-                <button onclick="enterPlatform()" class="w-full bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-slate-950 font-black py-4 px-6 rounded-2xl flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(16,185,129,0.25)] text-sm tracking-wider uppercase">
-                    <span>Acessar Plataforma</span>
-                    <i data-lucide="arrow-right" class="w-4.5 h-4.5"></i>
-                </button>
-
-                <!-- Aviso Desktop/Tablet -->
-                <span class="text-[10px] font-bold text-slate-500">
-                    Recomendado para uso em desktop/tablet para melhor experiência.
-                </span>
             </div>
-        </div>
+        </section>
 
-        <!-- Rodapé da Página -->
-        <footer class="text-[10px] font-bold text-slate-600 tracking-wide z-10 py-2">
-            &copy; 2024 Web GIS Manaus · Dados Espaciais Oficiais e Informais
+        <!-- SEÇÃO DE ESTATÍSTICAS (STATS) -->
+        <section class="w-full max-w-7xl mx-auto px-6 py-8 grid grid-cols-2 md:grid-cols-4 gap-4 relative z-10">
+            <div class="bg-slate-950/30 backdrop-blur-sm border border-slate-900/60 hover:border-slate-800/80 rounded-2xl p-6 text-left transition-all hover:-translate-y-1">
+                <div class="w-8 h-8 rounded-lg bg-emerald-500/5 border border-emerald-500/10 flex items-center justify-center mb-4">
+                    <i data-lucide="layers" class="w-4.5 h-4.5 text-emerald-400"></i>
+                </div>
+                <span class="text-3xl font-black text-white font-mono tracking-tight">64</span>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Bairros Oficiais</p>
+            </div>
+            <div class="bg-slate-950/30 backdrop-blur-sm border border-slate-900/60 hover:border-slate-800/80 rounded-2xl p-6 text-left transition-all hover:-translate-y-1">
+                <div class="w-8 h-8 rounded-lg bg-emerald-500/5 border border-emerald-500/10 flex items-center justify-center mb-4">
+                    <i data-lucide="map-pin" class="w-4.5 h-4.5 text-emerald-400"></i>
+                </div>
+                <span class="text-3xl font-black text-white font-mono tracking-tight">662</span>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Localidades Mapeadas</p>
+            </div>
+            <div class="bg-slate-950/30 backdrop-blur-sm border border-slate-900/60 hover:border-slate-800/80 rounded-2xl p-6 text-left transition-all hover:-translate-y-1">
+                <div class="w-8 h-8 rounded-lg bg-emerald-500/5 border border-emerald-500/10 flex items-center justify-center mb-4">
+                    <i data-lucide="compass" class="w-4.5 h-4.5 text-emerald-400"></i>
+                </div>
+                <span class="text-3xl font-black text-white font-mono tracking-tight">6</span>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Zonas Administrativas</p>
+            </div>
+            <div class="bg-slate-950/30 backdrop-blur-sm border border-slate-900/60 hover:border-slate-800/80 rounded-2xl p-6 text-left transition-all hover:-translate-y-1">
+                <div class="w-8 h-8 rounded-lg bg-emerald-500/5 border border-emerald-500/10 flex items-center justify-center mb-4">
+                    <i data-lucide="tag" class="w-4.5 h-4.5 text-emerald-400"></i>
+                </div>
+                <span class="text-3xl font-black text-white font-mono tracking-tight">11</span>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Tipos de Localidades</p>
+            </div>
+        </section>
+
+        <!-- SEÇÃO DE RECURSOS (FEATURES) -->
+        <section id="features" class="w-full max-w-7xl mx-auto px-6 py-16 flex flex-col gap-12 relative z-10">
+            <div class="flex flex-col gap-2.5 text-left max-w-2xl">
+                <div class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Recursos & Ferramentas</div>
+                <h2 class="text-3xl md:text-4xl font-black text-white tracking-tight">Tudo o que você precisa para analisar o território</h2>
+                <p class="text-xs md:text-sm text-slate-400 font-medium leading-relaxed">
+                    Explore recursos cartográficos de ponta para analisar Manaus em nível detalhado, com dados integrados e painéis eficientes.
+                </p>
+            </div>
+            
+            <!-- Grid de Recursos Principais -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-slate-950/40 backdrop-blur-sm border border-slate-900/80 rounded-3xl p-8 text-left flex flex-col justify-between hover:border-slate-800 transition-all">
+                    <div class="flex flex-col gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                            <i data-lucide="layers" class="w-6 h-6 text-emerald-400"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white">Navegação Cartográfica Avançada</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Painel interativo de camadas permitindo ativar/desativar bairros, zonas coloridas e localidades. Busca inteligente com autocomplete rápido e zoom suave diretamente para a feição selecionada no mapa.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-950/40 backdrop-blur-sm border border-slate-900/80 rounded-3xl p-8 text-left flex flex-col justify-between hover:border-slate-800 transition-all">
+                    <div class="flex flex-col gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center">
+                            <i data-lucide="file-text" class="w-6 h-6 text-sky-400"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white">Relatório Técnico (PDF ou A4)</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Geração de relatórios técnicos em formato A4 Retrato. Sincronização automática da área de enquadramento do mapa, tabelas de metadados da feição ativa, legenda dedicada e área livre para preenchimento de notas de campo.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-950/40 backdrop-blur-sm border border-slate-900/80 rounded-3xl p-8 text-left flex flex-col justify-between hover:border-slate-800 transition-all">
+                    <div class="flex flex-col gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
+                            <i data-lucide="info" class="w-6 h-6 text-orange-400"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white">Informações Especiais</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Rótulos dinâmicos (tooltips) e destaque de bordas ao passar o cursor sobre as feições. Painel com coordenadas em tempo real e busca de referências vizinhas num raio de 1 km com cálculo de distância instantâneo.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Subgrid de Ferramentas Rápidas -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-slate-950/20 border border-slate-900/40 rounded-xl p-4 flex items-center gap-3 text-left">
+                    <div class="text-emerald-400 bg-emerald-500/5 p-2 rounded-lg border border-emerald-500/10"><i data-lucide="search" class="w-4 h-4"></i></div>
+                    <div class="flex flex-col"><span class="text-xs font-bold text-white">Busca Inteligente</span><span class="text-[9px] text-slate-500">Autocomplete rápido</span></div>
+                </div>
+                <div class="bg-slate-950/20 border border-slate-900/40 rounded-xl p-4 flex items-center gap-3 text-left">
+                    <div class="text-emerald-400 bg-emerald-500/5 p-2 rounded-lg border border-emerald-500/10"><i data-lucide="ruler" class="w-4 h-4"></i></div>
+                    <div class="flex flex-col"><span class="text-xs font-bold text-white">Medição Cartográfica</span><span class="text-[9px] text-slate-500">Distâncias e Áreas</span></div>
+                </div>
+                <div class="bg-slate-950/20 border border-slate-900/40 rounded-xl p-4 flex items-center gap-3 text-left">
+                    <div class="text-emerald-400 bg-emerald-500/5 p-2 rounded-lg border border-emerald-500/10"><i data-lucide="map-pin" class="w-4 h-4"></i></div>
+                    <div class="flex flex-col"><span class="text-xs font-bold text-white">Coordenadas Livres</span><span class="text-[9px] text-slate-500">Lat/Lng em tempo real</span></div>
+                </div>
+                <div class="bg-slate-950/20 border border-slate-900/40 rounded-xl p-4 flex items-center gap-3 text-left">
+                    <div class="text-emerald-400 bg-emerald-500/5 p-2 rounded-lg border border-emerald-500/10"><i data-lucide="file-down" class="w-4 h-4"></i></div>
+                    <div class="flex flex-col"><span class="text-xs font-bold text-white">Exportação Premium</span><span class="text-[9px] text-slate-500">A4 e PDF sem cortes</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO DE BASES DE MAPA (BASEMAPS) -->
+        <section id="basemaps" class="w-full max-w-7xl mx-auto px-6 py-16 flex flex-col gap-12 relative z-10">
+            <div class="flex flex-col gap-2.5 text-center items-center max-w-xl mx-auto">
+                <div class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Bases Cartográficas</div>
+                <h2 class="text-3xl md:text-4xl font-black text-white tracking-tight">Quatro bases cartográficas, <span class="text-emerald-400">um só clique</span></h2>
+                <p class="text-xs md:text-sm text-slate-400 font-medium leading-relaxed">
+                    Alterne instantaneamente entre diferentes servidores de mapas para facilitar suas análises técnicas ou apresentações executivas.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div class="bg-slate-950/30 border border-slate-900/80 rounded-2xl p-6 text-left flex flex-col gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400"><i data-lucide="map" class="w-5 h-5"></i></div>
+                    <h4 class="text-sm font-bold text-white">Vetor (OSM)</h4>
+                    <p class="text-[10px] text-slate-500 leading-relaxed">Mapa vetorial de ruas clássico, otimizado para navegação urbana e carregamento ultra-rápido.</p>
+                </div>
+                <div class="bg-slate-950/30 border border-slate-900/80 rounded-2xl p-6 text-left flex flex-col gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-emerald-400"><i data-lucide="satellite" class="w-5 h-5"></i></div>
+                    <h4 class="text-sm font-bold text-white">Satélite Híbrido</h4>
+                    <p class="text-[10px] text-slate-500 leading-relaxed">Imagens de satélite com vias, arruamento e nomes de logradouros sobrepostos de forma nítida.</p>
+                </div>
+                <div class="bg-slate-950/30 border border-slate-900/80 rounded-2xl p-6 text-left flex flex-col gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-sky-400"><i data-lucide="globe" class="w-5 h-5"></i></div>
+                    <h4 class="text-sm font-bold text-white">Satélite Limpo</h4>
+                    <p class="text-[10px] text-slate-500 leading-relaxed">Imagens de alta resolução do Esri World Imagery, ideal para analisar cobertura de solo pura.</p>
+                </div>
+                <div class="bg-slate-950/30 border border-slate-900/80 rounded-2xl p-6 text-left flex flex-col gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-violet-400"><i data-lucide="moon" class="w-5 h-5"></i></div>
+                    <h4 class="text-sm font-bold text-white">Tema Escuro</h4>
+                    <p class="text-[10px] text-slate-500 leading-relaxed">Mapa estilizado dark CartoDB Dark Matter, ideal para realçar cores de feições e polígonos.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO DE DIVISÕES ADMINISTRATIVAS (TERRITORY) -->
+        <section id="territory" class="w-full max-w-7xl mx-auto px-6 py-16 flex flex-col gap-12 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                <div class="lg:col-span-5 flex flex-col gap-5 text-left">
+                    <div class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Divisões Territoriais</div>
+                    <h2 class="text-3xl md:text-4xl font-black text-white tracking-tight">Divisões administrativas e subdivisões oficiais</h2>
+                    <p class="text-xs md:text-sm text-slate-400 font-medium leading-relaxed">
+                        O município de Manaus se organiza administrativamente em **6 Zonas Administrativas** urbanas, além da **Zona Rural**. Juntas, elas englobam **64 Bairros Oficiais** e **662 Localidades** cadastradas (incluindo comunidades informais, condomínios fechados, residenciais estruturados e loteamentos).
+                    </p>
+                    <div class="grid grid-cols-2 gap-4 mt-2">
+                        <div class="border-l-2 border-emerald-500 pl-3">
+                            <span class="text-lg font-black text-white font-mono">64</span>
+                            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Bairros Oficiais</p>
+                        </div>
+                        <div class="border-l-2 border-emerald-500 pl-3">
+                            <span class="text-lg font-black text-white font-mono">662</span>
+                            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Localidades Cadastradas</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="lg:col-span-7">
+                    <div class="bg-slate-950/40 backdrop-blur-md border border-slate-800/80 rounded-3xl p-6 md:p-8 flex flex-col gap-4 shadow-2xl">
+                        <div class="flex justify-between items-center border-b border-slate-900 pb-3">
+                            <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5"><i data-lucide="bar-chart-2" class="w-4 h-4 text-emerald-400"></i> Distribuição Territorial de Dados</span>
+                            <span class="text-[9px] font-bold text-slate-500 uppercase">Valores Reais</span>
+                        </div>
+                        
+                        <div class="flex flex-col gap-2">
+                            <!-- Linhas da tabela de distribuição real -->
+                            <div class="flex justify-between items-center py-2 px-4 rounded-xl bg-slate-900/30 hover:bg-slate-900/50 transition-colors border border-slate-900/30">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full" style="background-color: #10b981;"></span>
+                                    <span class="text-xs font-bold text-white">Zona Centro-Sul</span>
+                                </div>
+                                <span class="text-xs font-semibold text-slate-300 font-mono">6 Bairros · 160 Localidades</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2 px-4 rounded-xl bg-slate-900/30 hover:bg-slate-900/50 transition-colors border border-slate-900/30">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full" style="background-color: #3b82f6;"></span>
+                                    <span class="text-xs font-bold text-white">Zona Norte</span>
+                                </div>
+                                <span class="text-xs font-semibold text-slate-300 font-mono">10 Bairros · 155 Localidades</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2 px-4 rounded-xl bg-slate-900/30 hover:bg-slate-900/50 transition-colors border border-slate-900/30">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full" style="background-color: #f59e0b;"></span>
+                                    <span class="text-xs font-bold text-white">Zona Oeste</span>
+                                </div>
+                                <span class="text-xs font-semibold text-slate-300 font-mono">8 Bairros · 100 Localidades</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2 px-4 rounded-xl bg-slate-900/30 hover:bg-slate-900/50 transition-colors border border-slate-900/30">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full" style="background-color: #ef4444;"></span>
+                                    <span class="text-xs font-bold text-white">Zona Centro-Oeste</span>
+                                </div>
+                                <span class="text-xs font-semibold text-slate-300 font-mono">11 Bairros · 77 Localidades</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2 px-4 rounded-xl bg-slate-900/30 hover:bg-slate-900/50 transition-colors border border-slate-900/30">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full" style="background-color: #8b5cf6;"></span>
+                                    <span class="text-xs font-bold text-white">Zona Leste</span>
+                                </div>
+                                <span class="text-xs font-semibold text-slate-300 font-mono">11 Bairros · 77 Localidades</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2 px-4 rounded-xl bg-slate-900/30 hover:bg-slate-900/50 transition-colors border border-slate-900/30">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full" style="background-color: #ec4899;"></span>
+                                    <span class="text-xs font-bold text-white">Zona Sul</span>
+                                </div>
+                                <span class="text-xs font-semibold text-slate-300 font-mono">18 Bairros · 39 Localidades</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2 px-4 rounded-xl bg-slate-900/30 hover:bg-slate-900/50 transition-colors border border-slate-900/30">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full" style="background-color: #6b7280;"></span>
+                                    <span class="text-xs font-bold text-white">Zona Rural</span>
+                                </div>
+                                <span class="text-xs font-semibold text-slate-300 font-mono">0 Bairros · 54 Localidades</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO CTA FINAL -->
+        <section class="w-full max-w-5xl mx-auto px-6 py-16 relative z-10">
+            <div class="bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-slate-950/20 backdrop-blur-md border border-emerald-500/15 rounded-[36px] p-8 md:p-12 text-center flex flex-col items-center gap-6 shadow-3xl">
+                <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                    <i data-lucide="compass" class="w-7 h-7 text-emerald-400 animate-spin" style="animation-duration: 25s;"></i>
+                </div>
+                <h2 class="text-3xl md:text-4xl font-black text-white tracking-tight">Pronto para explorar Manaus?</h2>
+                <p class="text-xs md:text-sm text-slate-400 font-medium max-w-lg leading-relaxed">
+                    Acesse o mapa interativo agora mesmo e explore as divisões territoriais urbanas e rurais com ferramentas de análise espacial de alto desempenho.
+                </p>
+                <button onclick="enterPlatform()" class="bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-black px-8 py-4 rounded-2xl text-xs flex items-center gap-2 transition-all shadow-[0_0_20px_rgba(16,185,129,0.25)] uppercase tracking-wider cursor-pointer">
+                    <span>Explorar Plataforma</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="w-full max-w-7xl mx-auto px-6 py-8 border-t border-slate-900/60 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest relative z-10">
+            <span>&copy; 2026 Web GIS Manaus · Geotecnologia local aplicada</span>
+            <div class="flex gap-6">
+                <span>Leaflet.js</span>
+                <span>Tailwind CSS</span>
+                <span>Lucide Icons</span>
+            </div>
         </footer>
     </div>
 
@@ -2066,6 +2322,19 @@
         }
 
         // 17. CONTROLE DA TELA DE BOAS-VINDAS (INTRO SCREEN)
+        function scrollToSection(id) {
+            const welcomeScreen = document.getElementById('welcome-screen');
+            const element = document.getElementById(id);
+            if (welcomeScreen && element) {
+                // Como o welcomeScreen é a div com overflow-y-auto, calculamos o topo relativo a ela
+                const topPos = element.offsetTop - 20; // 20px de espaçamento superior
+                welcomeScreen.scrollTo({
+                    top: topPos,
+                    behavior: 'smooth'
+                });
+            }
+        }
+
         function enterPlatform() {
             const welcomeScreen = document.getElementById('welcome-screen');
             welcomeScreen.classList.add('welcome-fade-out');
